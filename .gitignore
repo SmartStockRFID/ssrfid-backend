@@ -177,3 +177,5 @@ pyrightconfig.json
 
 # Generated using ignr.py - github.com/Antrikshy/ignr.py
 
+# Dev defined ignores
+start_db.sh

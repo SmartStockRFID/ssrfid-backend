@@ -62,12 +62,17 @@ pydantic==2.11.7
     # via
     #   fastapi
     #   fastapi-cloud-cli
+    #   pydantic-settings
 pydantic-core==2.33.2
     # via pydantic
+pydantic-settings==2.10.1
+    # via -r requirements.in
 pygments==2.19.2
     # via rich
 python-dotenv==1.1.1
-    # via uvicorn
+    # via
+    #   pydantic-settings
+    #   uvicorn
 python-multipart==0.0.20
     # via fastapi
 pyyaml==6.0.2
@@ -108,7 +113,9 @@ typing-extensions==4.14.1
     #   typer
     #   typing-inspection
 typing-inspection==0.4.1
-    # via pydantic
+    # via
+    #   pydantic
+    #   pydantic-settings
 urllib3==2.5.0
     # via sentry-sdk
 uvicorn==0.35.0

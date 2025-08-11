@@ -1,5 +1,6 @@
 fastapi[standard]
 psycopg
 SqlAlchemy
+pydantic-settings
 ruff
 
