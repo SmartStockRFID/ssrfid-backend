@@ -1,5 +1,7 @@
 import random
+
 from sqlalchemy.orm import Session
+
 from app.database import SessionLocal
 from app.models.peca import Peca
 
@@ -27,13 +29,20 @@ pecas_modelos = [
 ]
 
 anos = [
-    "2005-2007", "2008-2010", "2011-2013", "2014-2016", "2017-2019",
-    "2020-2022", "2023-2024"
+    "2005-2007",
+    "2008-2010",
+    "2011-2013",
+    "2014-2016",
+    "2017-2019",
+    "2020-2022",
+    "2023-2024",
 ]
+
 
 def gerar_codigo_oem(indice):
     """Gera código OEM curto e único, ex: 123-001"""
     return f"{random.randint(100, 999)}-{indice:03d}"
+
 
 def gerar_pecas(qtd):
     db: Session = SessionLocal()
@@ -51,7 +60,7 @@ def gerar_pecas(qtd):
         quantidade = random.randint(5, 50)
         preco_custo = round(random.uniform(50, 600), 2)
         preco_venda = round(preco_custo * random.uniform(1.3, 2.5), 2)
-        localizacao = f"A{random.randint(1,5)}-{random.randint(1,10):02d}"
+        localizacao = f"A{random.randint(1, 5)}-{random.randint(1, 10):02d}"
 
         peca = Peca(
             nome=f"{nome} - {modelo}",
@@ -63,13 +72,14 @@ def gerar_pecas(qtd):
             preco_venda=preco_venda,
             modelo_carro=modelo,
             ano_carro=ano,
-            rfid_uid=None  # deixa nulo para associar depois
+            rfid_uid=None,  # deixa nulo para associar depois
         )
         registros.append(peca)
 
     db.add_all(registros)
     db.commit()
     print(f"{qtd} registros inseridos com sucesso.")
+
 
 if __name__ == "__main__":
     gerar_pecas(100)
