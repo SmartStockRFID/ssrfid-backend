@@ -1,38 +1,75 @@
 import random
 from sqlalchemy.orm import Session
-from app.models.peca import Peca, Base
-from app.database import engine, SessionLocal
+from app.database import SessionLocal
+from app.models.peca import Peca
 
-nomes = [f"Peça {i}" for i in range(1, 101)]
-descricoes = [f"Descrição da peça {i}" for i in range(1, 101)]
-modelos_carro = [f"Modelo {chr(65 + i%10)}" for i in range(100)]
-anos_carro = [f"{2000 + i%20}-{2000 + i%20 + 1}" for i in range(100)]
-localizacoes = [f"A{random.randint(1,5)}-{str(random.randint(1,10)).zfill(2)}" for _ in range(100)]
+pecas_modelos = [
+    ("Filtro de Óleo", "Corolla"),
+    ("Filtro de Ar", "Corolla"),
+    ("Pastilha de Freio Dianteira", "Corolla"),
+    ("Pastilha de Freio Traseira", "Corolla"),
+    ("Amortecedor Dianteiro", "Hilux"),
+    ("Amortecedor Traseiro", "Hilux"),
+    ("Bateria", "Yaris"),
+    ("Velas de Ignição", "Etios"),
+    ("Correia Dentada", "Hilux"),
+    ("Radiador", "Corolla Cross"),
+    ("Alternador", "Hilux"),
+    ("Motor de Partida", "Corolla"),
+    ("Disco de Freio Dianteiro", "Corolla Cross"),
+    ("Disco de Freio Traseiro", "Corolla Cross"),
+    ("Bomba de Combustível", "Etios"),
+    ("Sensor de Oxigênio", "Yaris"),
+    ("Injetor", "Corolla"),
+    ("Kit Embreagem", "Hilux"),
+    ("Parabrisa", "Yaris"),
+    ("Retrovisor", "Corolla Cross"),
+]
 
-Base.metadata.create_all(bind=engine)
+anos = [
+    "2005-2007", "2008-2010", "2011-2013", "2014-2016", "2017-2019",
+    "2020-2022", "2023-2024"
+]
 
-def gerar_pecas():
+def gerar_codigo_oem(indice):
+    """Gera código OEM curto e único, ex: 123-001"""
+    return f"{random.randint(100, 999)}-{indice:03d}"
+
+def gerar_pecas(qtd):
     db: Session = SessionLocal()
-    pecas = []
-    for i in range(100):
-        preco_custo = round(random.uniform(10, 500), 2)
-        preco_venda = round(preco_custo + random.uniform(5, 100), 2)
+
+    # Limpa a tabela
+    db.query(Peca).delete()
+    db.commit()
+    print("Tabela 'pecas' esvaziada.")
+
+    registros = []
+    for i in range(1, qtd + 1):
+        nome, modelo = random.choice(pecas_modelos)
+        codigo_oem = gerar_codigo_oem(i)
+        ano = random.choice(anos)
+        quantidade = random.randint(5, 50)
+        preco_custo = round(random.uniform(50, 600), 2)
+        preco_venda = round(preco_custo * random.uniform(1.3, 2.5), 2)
+        localizacao = f"A{random.randint(1,5)}-{random.randint(1,10):02d}"
+
         peca = Peca(
-            nome=nomes[i],
-            codigo_oem=f"OEM-{random.randint(10000,99999)}-{i}",
-            descricao=descricoes[i],
-            localizacao=localizacoes[i],
-            quantidade=random.randint(1, 50),
+            nome=f"{nome} - {modelo}",
+            codigo_oem=codigo_oem,
+            descricao=f"Peça genuína Toyota {nome}, compatível com {modelo} ({ano}).",
+            localizacao=localizacao,
+            quantidade=quantidade,
             preco_custo=preco_custo,
             preco_venda=preco_venda,
-            modelo_carro=modelos_carro[i],
-            ano_carro=anos_carro[i],
-            rfid_uid=f"RFID-{random.randint(10000000,99999999)}"
+            modelo_carro=modelo,
+            ano_carro=ano,
+            rfid_uid=None  # deixa nulo para associar depois
         )
-        pecas.append(peca)
-    db.bulk_save_objects(pecas)
+        registros.append(peca)
+
+    db.add_all(registros)
     db.commit()
-    db.close()
+    print(f"{qtd} registros inseridos com sucesso.")
 
 if __name__ == "__main__":
-    gerar_pecas()
+    gerar_pecas(100)
