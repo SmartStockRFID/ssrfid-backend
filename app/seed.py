@@ -3,9 +3,9 @@
 import random
 
 import random
+
 from sqlalchemy.orm import Session
-from sqlalchemy import text
-from app.database import SessionLocal, engine
+from app.database import SessionLocal
 from app.models.peca import Peca
 from app.models.usuario import Usuario, Base as UsuarioBase
 from app.crud.usuario import get_password_hash
@@ -58,9 +58,15 @@ pecas_modelos = [
 ]
 
 anos = [
-    "2005-2007", "2008-2010", "2011-2013", "2014-2016", "2017-2019",
-    "2020-2022", "2023-2024"
+    "2005-2007",
+    "2008-2010",
+    "2011-2013",
+    "2014-2016",
+    "2017-2019",
+    "2020-2022",
+    "2023-2024",
 ]
+
 
 def gerar_codigo_oem(categoria_id, serial):
     # Exemplo: 1001-0001
@@ -88,6 +94,7 @@ def criar_admin(db):
         print("Usuário admin criado com sucesso!")
     else:
         print("Usuário admin já existe.")
+
 
 def gerar_pecas(qtd):
     db: Session = SessionLocal()
@@ -118,7 +125,7 @@ def gerar_pecas(qtd):
         quantidade = random.randint(5, 50)
         preco_custo = round(random.uniform(50, 600), 2)
         preco_venda = round(preco_custo * random.uniform(1.3, 2.5), 2)
-        localizacao = f"A{random.randint(1,5)}-{random.randint(1,10):02d}"
+        localizacao = f"A{random.randint(1, 5)}-{random.randint(1, 10):02d}"
 
         peca = Peca(
             nome=f"{nome} - {modelo}",
@@ -130,7 +137,7 @@ def gerar_pecas(qtd):
             preco_venda=preco_venda,
             modelo_carro=modelo,
             ano_carro=ano,
-            rfid_uid=None  # deixa nulo para associar depois
+            rfid_uid=None,  # deixa nulo para associar depois
         )
         registros.append(peca)
 
@@ -138,6 +145,7 @@ def gerar_pecas(qtd):
     db.commit()
     print(f"{qtd} registros inseridos com sucesso.")
     db.close()
+
 
 if __name__ == "__main__":
     gerar_pecas(100)
