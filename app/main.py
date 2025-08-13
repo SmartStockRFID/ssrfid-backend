@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.orm import Session
 from app.routers import peca
 from app.routers import usuario
 from app.auth import authenticate_user, create_access_token
@@ -25,3 +28,4 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return {"access_token": access_token, "token_type": "bearer"}
 
 app.include_router(peca.router)
+app.include_router(usuario.router)
