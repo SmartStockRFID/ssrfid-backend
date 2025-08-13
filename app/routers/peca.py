@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.schemas.peca import PecaOut, PecaCreate, PecaUpdate
 from app.crud.peca import get_pecas, get_peca, create_peca, update_peca, delete_peca
 from app.database import get_db
@@ -10,6 +11,14 @@ router = APIRouter(prefix="/pecas", tags=["pecas"])
 @router.get("/", response_model=list[PecaOut])
 def listar_pecas(db: Session = Depends(get_db)):
     return get_pecas(db)
+
+@router.get("/busca", response_model=list[PecaOut])
+def buscar_pecas_por_nome(nome: str = Query(..., min_length=3), db: Session = Depends(get_db)):
+    query = db.query(Peca).filter(func.lower(Peca.nome).contains(nome.lower()))
+    resultados = query.all()
+    if not resultados:
+        raise HTTPException(status_code=404, detail="Nenhuma peça encontrada")
+    return resultados
 
 @router.get("/search", response_model=PecaOut)
 def buscar_peca_por_rfid(rfid_uid: str, db: Session = Depends(get_db)):
