@@ -3,4 +3,5 @@ psycopg
 SqlAlchemy
 pydantic-settings
 ruff
+PyJWT
 
