@@ -3,4 +3,7 @@ psycopg
 SqlAlchemy
 pydantic-settings
 ruff
-
+alembic
+python-jose
+passlib
+bcrypt
