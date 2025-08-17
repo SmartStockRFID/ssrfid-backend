@@ -4,6 +4,7 @@ import requests
 
 API_URL = "http://localhost:8000/pecas"
 LOGIN_URL = "http://localhost:8000/login"
+USUARIOS_URL = "http://localhost:8000/usuarios"
 
 class EstoqueApp:
     def __init__(self, root):
@@ -11,6 +12,7 @@ class EstoqueApp:
         self.root.title("Estoque Toyota Newland")
         self.root.geometry("900x500")
         self.token = None
+        self.user_role = None
         self.show_login()
 
     def show_login(self):
@@ -33,7 +35,17 @@ class EstoqueApp:
         try:
             resp = requests.post(LOGIN_URL, data={"username": username, "password": password})
             if resp.status_code == 200:
-                self.token = resp.json()["access_token"]
+                data = resp.json()
+                self.token = data["access_token"]
+                
+                # Abordagem alternativa: usar o username para determinar o role
+                # Se for 'admin', assume role de administrador
+                if username == "admin":
+                    self.user_role = "admin"
+                else:
+                    # Para outros usuários, assume role padrão
+                    self.user_role = "user"
+                
                 self.login_win.destroy()
                 self.search_var = tk.StringVar()
                 self.create_widgets()
@@ -64,6 +76,11 @@ class EstoqueApp:
         tk.Button(btn_frame, text="Editar", command=self.editar_peca).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Deletar", command=self.deletar_peca).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Voltar", command=self.voltar_busca).pack(side=tk.LEFT, padx=5)
+        
+        # Botão para criar usuário (apenas para admins)
+        if self.user_role == "admin":
+            tk.Button(btn_frame, text="Criar Usuário", command=self.criar_usuario, 
+                     bg="#4CAF50", fg="white", relief=tk.RAISED).pack(side=tk.LEFT, padx=5)
 
     def voltar_busca(self):
         self.search_var.set("")
@@ -164,6 +181,138 @@ class EstoqueApp:
             except Exception as e:
                 messagebox.showerror("Erro", f"Falha ao salvar peça: {e}")
         tk.Button(form, text="Salvar", command=salvar).grid(row=len(campos), column=0, columnspan=2, pady=10)
+
+    def criar_usuario(self):
+        """Abre formulário para criação de novo usuário"""
+        if self.user_role != "admin":
+            messagebox.showerror("Acesso Negado", "Apenas administradores podem criar usuários.")
+            return
+            
+        self.usuario_form("Criar Novo Usuário")
+
+    def usuario_form(self, title):
+        """Formulário para criação de usuário"""
+        form = tk.Toplevel(self.root)
+        form.title(title)
+        form.geometry("350x250")
+        form.grab_set()  # Torna o formulário modal
+        
+        # Centralizar o formulário
+        form.transient(self.root)
+        form.grab_set()
+        
+        # Frame principal com padding
+        main_frame = tk.Frame(form, padx=20, pady=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Campos do formulário
+        campos = [
+            ("username", "Nome de Usuário:"),
+            ("password", "Senha:"),
+            ("confirm_password", "Confirmar Senha:"),
+            ("role", "Papel:")
+        ]
+        
+        entries = {}
+        for i, (campo, label) in enumerate(campos):
+            tk.Label(main_frame, text=label, anchor=tk.W).grid(row=i, column=0, sticky=tk.W, pady=5)
+            
+            if campo == "password" or campo == "confirm_password":
+                entries[campo] = tk.Entry(main_frame, width=25, show="*")
+            elif campo == "role":
+                # Combobox para seleção de papel
+                entries[campo] = ttk.Combobox(main_frame, width=22, 
+                                            values=["estoquista", "admin", "vendedor"], 
+                                            state="readonly")
+                entries[campo].set("estoquista")  # Valor padrão
+            else:
+                entries[campo] = tk.Entry(main_frame, width=25)
+            
+            entries[campo].grid(row=i, column=1, sticky=tk.W, pady=5, padx=(10, 0))
+        
+        # Frame para botões
+        btn_frame = tk.Frame(main_frame)
+        btn_frame.grid(row=len(campos), column=0, columnspan=2, pady=20)
+        
+        def salvar_usuario():
+            """Valida e salva o novo usuário"""
+            # Validação dos campos
+            username = entries["username"].get().strip()
+            password = entries["password"].get()
+            confirm_password = entries["confirm_password"].get()
+            role = entries["role"].get()
+            
+            # Validações
+            if not username:
+                messagebox.showerror("Erro", "Nome de usuário é obrigatório.")
+                return
+                
+            if len(username) < 3:
+                messagebox.showerror("Erro", "Nome de usuário deve ter pelo menos 3 caracteres.")
+                return
+                
+            if not password:
+                messagebox.showerror("Erro", "Senha é obrigatória.")
+                return
+                
+            if len(password) < 6:
+                messagebox.showerror("Erro", "Senha deve ter pelo menos 6 caracteres.")
+                return
+                
+            if password != confirm_password:
+                messagebox.showerror("Erro", "As senhas não coincidem.")
+                return
+                
+            if not role:
+                messagebox.showerror("Erro", "Papel é obrigatório.")
+                return
+            
+            # Dados para envio
+            dados = {
+                "username": username,
+                "password": password,
+                "role": role
+            }
+            
+            try:
+                headers = {"Authorization": f"Bearer {self.token}"}
+                resp = requests.post(USUARIOS_URL, json=dados, headers=headers)
+                
+                if resp.status_code == 201:
+                    messagebox.showinfo("Sucesso", f"Usuário '{username}' criado com sucesso!")
+                    form.destroy()
+                elif resp.status_code == 400:
+                    error_data = resp.json()
+                    if "Usuário já existe" in error_data.get("detail", ""):
+                        messagebox.showerror("Erro", f"Usuário '{username}' já existe no sistema.")
+                    else:
+                        messagebox.showerror("Erro", f"Erro na criação: {error_data.get('detail', 'Erro desconhecido')}")
+                elif resp.status_code == 403:
+                    messagebox.showerror("Erro", "Acesso negado. Apenas administradores podem criar usuários.")
+                else:
+                    messagebox.showerror("Erro", f"Erro na criação: {resp.status_code}")
+                    
+            except requests.exceptions.ConnectionError:
+                messagebox.showerror("Erro", "Falha na conexão com o servidor.")
+            except Exception as e:
+                messagebox.showerror("Erro", f"Erro inesperado: {e}")
+        
+        def cancelar():
+            """Fecha o formulário sem salvar"""
+            form.destroy()
+        
+        # Botões
+        tk.Button(btn_frame, text="Salvar", command=salvar_usuario, 
+                 bg="#4CAF50", fg="white", relief=tk.RAISED, width=10).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="Cancelar", command=cancelar, 
+                 bg="#f44336", fg="white", relief=tk.RAISED, width=10).pack(side=tk.LEFT, padx=5)
+        
+        # Focar no primeiro campo
+        entries["username"].focus()
+        
+        # Bind Enter para salvar
+        form.bind('<Return>', lambda e: salvar_usuario())
+        form.bind('<Escape>', lambda e: cancelar())
 
 if __name__ == "__main__":
     root = tk.Tk()
