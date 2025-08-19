@@ -5,7 +5,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.models.base import Base
-from app.models.conferencia import Etiqueta, Evento, Leitura  # noqa
+from app.models.conferencia import Conferencia, Evento, Leitura  # noqa
 from app.models.peca import Peca  # noqa
 from app.models.usuario import Usuario  # noqa
 from app.settings import app_settings

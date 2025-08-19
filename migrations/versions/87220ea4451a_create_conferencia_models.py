@@ -1,8 +1,8 @@
-"""create conference models
+"""create conferencia models
 
-Revision ID: 8d7ae4847811
+Revision ID: 87220ea4451a
 Revises: 
-Create Date: 2025-08-15 00:37:59.415946
+Create Date: 2025-08-19 10:05:56.879926
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8d7ae4847811'
+revision: str = '87220ea4451a'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -59,18 +59,17 @@ def upgrade() -> None:
     op.create_index(op.f('ix_conferencia_id'), 'conferencia', ['id'], unique=False)
     op.create_table('etiqueta',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('rfid_uid', sa.String(), nullable=True),
-    sa.Column('epc', sa.String(), nullable=True),
-    sa.Column('peca_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['peca_id'], ['pecas.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('epc'),
-    sa.UniqueConstraint('rfid_uid')
+    sa.Column('produto_id', sa.Integer(), nullable=False),
+    sa.Column('rdid_uuid', sa.String(), nullable=False),
+    sa.Column('codigo_oem', sa.String(), nullable=False),
+    sa.ForeignKeyConstraint(['produto_id'], ['pecas.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_etiqueta_id'), 'etiqueta', ['id'], unique=False)
     op.create_table('evento',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('tipo_evento', sa.String(), nullable=False),
+    sa.Column('descricao', sa.String(), nullable=False),
     sa.Column('ocorreu_em', sa.DateTime(timezone=True), nullable=False),
     sa.Column('conferencia_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['conferencia_id'], ['conferencia.id'], ),
@@ -79,8 +78,8 @@ def upgrade() -> None:
     op.create_index(op.f('ix_evento_id'), 'evento', ['id'], unique=False)
     op.create_table('leitura',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('etiqueta_id', sa.Integer(), nullable=True),
-    sa.Column('conferencia_id', sa.Integer(), nullable=True),
+    sa.Column('etiqueta_id', sa.Integer(), nullable=False),
+    sa.Column('conferencia_id', sa.Integer(), nullable=False),
     sa.Column('timestamp_leitura', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['conferencia_id'], ['conferencia.id'], ),
     sa.ForeignKeyConstraint(['etiqueta_id'], ['etiqueta.id'], ),
