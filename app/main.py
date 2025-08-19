@@ -1,9 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from app.routers import auth, conferencia, peca, usuario
+from app.settings import app_settings
 
-app = FastAPI()
+app = FastAPI(
+    title=app_settings.PROJECT_NAME,
+    description=app_settings.PROJECT_DESCRIPTION,
+    version=app_settings.PROJECT_VERSION,
+)
+
+
+# Redirecionamento padrão para /docs
+@app.get("/", include_in_schema=False)
+def redirect_to_docs():
+    return RedirectResponse(url="/docs")
+
 
 # Configuração do CORS
 app.add_middleware(
