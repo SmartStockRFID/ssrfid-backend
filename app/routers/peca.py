@@ -1,13 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.schemas.peca import PecaOut, PecaCreate, PecaUpdate
-from app.crud.peca import get_pecas, get_peca, create_peca, update_peca, delete_peca
+from app.schemas.peca import PecaOut, PecaCreate, PecaUpdate, EtiquetaOut, EtiquetaCreate
+from app.crud.peca import (
+    get_pecas, get_peca, create_peca, update_peca, delete_peca,
+    get_etiquetas, get_etiqueta, create_etiqueta, update_etiqueta, delete_etiqueta
+)
 from app.database import get_db
-from app.models.peca import Peca
+from app.models.peca import Peca, Etiqueta
 
 router = APIRouter(prefix="/pecas", tags=["pecas"])
 
+# Peças
 @router.get("/", response_model=list[PecaOut])
 def listar_pecas(db: Session = Depends(get_db)):
     return get_pecas(db)
@@ -19,13 +23,6 @@ def buscar_pecas_por_nome(nome: str = Query(..., min_length=3), db: Session = De
     if not resultados:
         raise HTTPException(status_code=404, detail="Nenhuma peça encontrada")
     return resultados
-
-@router.get("/search", response_model=PecaOut)
-def buscar_peca_por_rfid(rfid_uid: str, db: Session = Depends(get_db)):
-    peca = db.query(Peca).filter(Peca.rfid_uid == rfid_uid).first()
-    if not peca:
-        raise HTTPException(status_code=404, detail="Peça não encontrada")
-    return peca
 
 @router.get("/{peca_id}", response_model=PecaOut)
 def buscar_peca(peca_id: int, db: Session = Depends(get_db)):
@@ -51,3 +48,33 @@ def deletar_peca(peca_id: int, db: Session = Depends(get_db)):
     if not db_peca:
         raise HTTPException(status_code=404, detail="Peça não encontrada")
     return db_peca
+
+# Etiquetas
+@router.get("/etiquetas/", response_model=list[EtiquetaOut])
+def listar_etiquetas(db: Session = Depends(get_db)):
+    return get_etiquetas(db)
+
+@router.get("/etiquetas/{etiqueta_id}", response_model=EtiquetaOut)
+def buscar_etiqueta(etiqueta_id: int, db: Session = Depends(get_db)):
+    etiqueta = get_etiqueta(db, etiqueta_id)
+    if not etiqueta:
+        raise HTTPException(status_code=404, detail="Etiqueta não encontrada")
+    return etiqueta
+
+@router.post("/etiquetas/", response_model=EtiquetaOut)
+def criar_etiqueta(etiqueta: EtiquetaCreate, db: Session = Depends(get_db)):
+    return create_etiqueta(db, etiqueta)
+
+@router.put("/etiquetas/{etiqueta_id}", response_model=EtiquetaOut)
+def atualizar_etiqueta(etiqueta_id: int, etiqueta: EtiquetaCreate, db: Session = Depends(get_db)):
+    db_etiqueta = update_etiqueta(db, etiqueta_id, etiqueta)
+    if not db_etiqueta:
+        raise HTTPException(status_code=404, detail="Etiqueta não encontrada")
+    return db_etiqueta
+
+@router.delete("/etiquetas/{etiqueta_id}", response_model=EtiquetaOut)
+def deletar_etiqueta(etiqueta_id: int, db: Session = Depends(get_db)):
+    db_etiqueta = delete_etiqueta(db, etiqueta_id)
+    if not db_etiqueta:
+        raise HTTPException(status_code=404, detail="Etiqueta não encontrada")
+    return db_etiqueta

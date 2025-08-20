@@ -2,38 +2,52 @@
 import random
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models.peca import Peca
+from app.models.peca import Peca, Etiqueta
 
-# Categorias principais
+# 10 categorias principais Toyota
 CATEGORIAS = {
-    "FILTRO": "Filtro",
-    "FREIO": "Freio",
-    "SUSP": "Suspensão",
-    "ELETR": "Elétrico",
-    "MOTOR": "Motor"
+    1001: "Motor",
+    1002: "Transmissão",
+    1003: "Suspensão",
+    1004: "Freios",
+    1005: "Elétrica",
+    1006: "Arrefecimento",
+    1007: "Direção",
+    1008: "Embreagem",
+    1009: "Escape",
+    1010: "Injeção"
 }
 
 pecas_modelos = [
-    ("Filtro de Óleo", "Corolla", "FILTRO"),
-    ("Filtro de Ar", "Corolla", "FILTRO"),
-    ("Pastilha de Freio Dianteira", "Corolla", "FREIO"),
-    ("Pastilha de Freio Traseira", "Corolla", "FREIO"),
-    ("Amortecedor Dianteiro", "Hilux", "SUSP"),
-    ("Amortecedor Traseiro", "Hilux", "SUSP"),
-    ("Bateria", "Yaris", "ELETR"),
-    ("Velas de Ignição", "Etios", "ELETR"),
-    ("Correia Dentada", "Hilux", "MOTOR"),
-    ("Radiador", "Corolla Cross", "MOTOR"),
-    ("Alternador", "Hilux", "ELETR"),
-    ("Motor de Partida", "Corolla", "ELETR"),
-    ("Disco de Freio Dianteiro", "Corolla Cross", "FREIO"),
-    ("Disco de Freio Traseiro", "Corolla Cross", "FREIO"),
-    ("Bomba de Combustível", "Etios", "MOTOR"),
-    ("Sensor de Oxigênio", "Yaris", "ELETR"),
-    ("Injetor", "Corolla", "MOTOR"),
-    ("Kit Embreagem", "Hilux", "MOTOR"),
-    ("Parabrisa", "Yaris", "SUSP"),
-    ("Retrovisor", "Corolla Cross", "SUSP"),
+    ("Filtro de Óleo", "Corolla", 1001),
+    ("Filtro de Ar", "Corolla", 1001),
+    ("Pastilha de Freio Dianteira", "Corolla", 1004),
+    ("Pastilha de Freio Traseira", "Corolla", 1004),
+    ("Amortecedor Dianteiro", "Hilux", 1003),
+    ("Amortecedor Traseiro", "Hilux", 1003),
+    ("Bateria", "Yaris", 1005),
+    ("Velas de Ignição", "Etios", 1005),
+    ("Correia Dentada", "Hilux", 1001),
+    ("Radiador", "Corolla Cross", 1006),
+    ("Alternador", "Hilux", 1005),
+    ("Motor de Partida", "Corolla", 1005),
+    ("Disco de Freio Dianteiro", "Corolla Cross", 1004),
+    ("Disco de Freio Traseiro", "Corolla Cross", 1004),
+    ("Bomba de Combustível", "Etios", 1010),
+    ("Sensor de Oxigênio", "Yaris", 1010),
+    ("Injetor", "Corolla", 1010),
+    ("Kit Embreagem", "Hilux", 1008),
+    ("Parabrisa", "Yaris", 1006),
+    ("Retrovisor", "Corolla Cross", 1007),
+    ("Catalisador", "Corolla", 1009),
+    ("Sensor ABS", "Hilux", 1004),
+    ("Bomba de Óleo", "Corolla", 1001),
+    ("Coxim do Motor", "Yaris", 1001),
+    ("Módulo de Injeção", "Etios", 1010),
+    ("Cabo de Vela", "Corolla", 1005),
+    ("Reservatório de Expansão", "Corolla Cross", 1006),
+    ("Bomba de Direção Hidráulica", "Hilux", 1007),
+    ("Sensor de Temperatura", "Yaris", 1006),
 ]
 
 anos = [
@@ -41,51 +55,71 @@ anos = [
     "2020-2022", "2023-2024"
 ]
 
-def gerar_codigo_oem(categoria, modelo, serial):
-    # Exemplo: FILTRO-COROLLA-001
-    return f"{categoria}-{modelo.upper().replace(' ', '')}-{serial:03d}"
+def gerar_codigo_oem(categoria_id, serial):
+    # Exemplo: 1001-0001
+    return f"{categoria_id:04d}-{serial:04d}"
 
-def gerar_pecas(qtd):
+def gerar_dados(qtd):
     db: Session = SessionLocal()
 
-    # Limpa a tabela
+    # Limpa tabelas
+    db.query(Etiqueta).delete()
     db.query(Peca).delete()
     db.commit()
-    print("Tabela 'pecas' esvaziada.")
+    print("Tabelas 'pecas' e 'etiquetas' esvaziadas.")
 
-    registros = []
-    usados = set()
+    pecas_dict = {}
+    etiquetas = []
+    usados_oem = set()
+    serials_categoria = {cat: 1 for cat in CATEGORIAS.keys()}
+
     for i in range(1, qtd + 1):
-        nome, modelo, categoria = random.choice(pecas_modelos)
-        serial = i
-        codigo_oem = gerar_codigo_oem(categoria, modelo, serial)
-        while codigo_oem in usados:
-            serial += 1
-            codigo_oem = gerar_codigo_oem(categoria, modelo, serial)
-        usados.add(codigo_oem)
-        ano = random.choice(anos)
-        quantidade = random.randint(5, 50)
-        preco_custo = round(random.uniform(50, 600), 2)
-        preco_venda = round(preco_custo * random.uniform(1.3, 2.5), 2)
-        localizacao = f"A{random.randint(1,5)}-{random.randint(1,10):02d}"
+        nome, modelo, categoria_id = random.choice(pecas_modelos)
+        chave_peca = (nome, modelo)
+        if chave_peca not in pecas_dict:
+            ano = random.choice(anos)
+            quantidade = random.randint(5, 50)
+            preco_custo = round(random.uniform(50, 600), 2)
+            preco_venda = round(preco_custo * random.uniform(1.3, 2.5), 2)
+            localizacao = f"A{random.randint(1,5)}-{random.randint(1,10):02d}"
+            peca = Peca(
+                nome=f"{nome} - {modelo}",
+                descricao=f"Peça genuína Toyota {nome}, compatível com {modelo} ({ano}). Categoria: {CATEGORIAS[categoria_id]}",
+                localizacao=localizacao,
+                quantidade=quantidade,
+                preco_custo=preco_custo,
+                preco_venda=preco_venda,
+                modelo_carro=modelo,
+                ano_carro=ano
+            )
+            db.add(peca)
+            db.flush()  # Garante id
+            pecas_dict[chave_peca] = peca.id if hasattr(peca, 'id') else None
+        else:
+            peca = db.query(Peca).filter_by(nome=f"{nome} - {modelo}").first()
 
-        peca = Peca(
-            nome=f"{nome} - {modelo}",
+        # Gera OEM único por categoria
+        serial = serials_categoria[categoria_id]
+        codigo_oem = gerar_codigo_oem(categoria_id, serial)
+        while codigo_oem in usados_oem:
+            serials_categoria[categoria_id] += 1
+            serial = serials_categoria[categoria_id]
+            codigo_oem = gerar_codigo_oem(categoria_id, serial)
+        usados_oem.add(codigo_oem)
+        serials_categoria[categoria_id] += 1
+
+        rfid_uid = f"RFID{random.randint(100000,999999)}"
+        etiqueta = Etiqueta(
             codigo_oem=codigo_oem,
-            descricao=f"Peça genuína Toyota {nome}, compatível com {modelo} ({ano}). Categoria: {CATEGORIAS[categoria]}",
-            localizacao=localizacao,
-            quantidade=quantidade,
-            preco_custo=preco_custo,
-            preco_venda=preco_venda,
-            modelo_carro=modelo,
-            ano_carro=ano,
-            rfid_uid=None  # deixa nulo para associar depois
+            rfid_uid=rfid_uid,
+            peca_id=peca.id if hasattr(peca, 'id') else None
         )
-        registros.append(peca)
+        etiquetas.append(etiqueta)
 
-    db.add_all(registros)
+    db.add_all(etiquetas)
     db.commit()
-    print(f"{qtd} registros inseridos com sucesso.")
+    print(f"{len(pecas_dict)} peças e {len(etiquetas)} etiquetas inseridas com sucesso.")
+    db.close()
 
 if __name__ == "__main__":
-    gerar_pecas(100)
+    gerar_dados(100)
