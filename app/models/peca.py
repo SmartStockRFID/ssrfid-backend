@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Float, Integer, String, ForeignKey
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import Column, Float, Integer, String
+from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
@@ -16,16 +16,3 @@ class Peca(Base):
     modelo_carro = Column(String, nullable=False)
     ano_carro = Column(String, nullable=False)
     codigo_tipo = Column(Integer)  # Referência à categoria
-
-    etiquetas = relationship("Etiqueta", back_populates="peca", cascade="all, delete-orphan")
-
-
-class Etiqueta(Base):
-    __tablename__ = "etiquetas"
-
-    id = Column(Integer, primary_key=True, index=True)
-    codigo_oem = Column(String, unique=True, nullable=False)
-    rfid_uid = Column(String, unique=True, nullable=False)
-    peca_id = Column(Integer, ForeignKey("pecas.id"), nullable=False)
-
-    peca = relationship("Peca", back_populates="etiquetas")

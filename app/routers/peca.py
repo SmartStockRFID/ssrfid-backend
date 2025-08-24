@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.schemas.peca import PecaOut, PecaCreate, PecaUpdate, EtiquetaOut, EtiquetaCreate
+from app.schemas.peca import PecaOut, PecaCreate, PecaUpdate
 from app.crud.peca import (
-    get_pecas, get_peca, create_peca, update_peca, delete_peca,
-    get_etiquetas, get_etiqueta, create_etiqueta, update_etiqueta, delete_etiqueta
+    get_pecas, get_peca, create_peca, update_peca, delete_peca
 )
 from app.database import get_db
-from app.models.peca import Peca, Etiqueta
+from app.models.peca import Peca
 
 router = APIRouter(prefix="/pecas", tags=["pecas"])
 
@@ -48,33 +47,3 @@ def deletar_peca(peca_id: int, db: Session = Depends(get_db)):
     if not db_peca:
         raise HTTPException(status_code=404, detail="Peça não encontrada")
     return db_peca
-
-# Etiquetas
-@router.get("/etiquetas/", response_model=list[EtiquetaOut])
-def listar_etiquetas(db: Session = Depends(get_db)):
-    return get_etiquetas(db)
-
-@router.get("/etiquetas/{etiqueta_id}", response_model=EtiquetaOut)
-def buscar_etiqueta(etiqueta_id: int, db: Session = Depends(get_db)):
-    etiqueta = get_etiqueta(db, etiqueta_id)
-    if not etiqueta:
-        raise HTTPException(status_code=404, detail="Etiqueta não encontrada")
-    return etiqueta
-
-@router.post("/etiquetas/", response_model=EtiquetaOut)
-def criar_etiqueta(etiqueta: EtiquetaCreate, db: Session = Depends(get_db)):
-    return create_etiqueta(db, etiqueta)
-
-@router.put("/etiquetas/{etiqueta_id}", response_model=EtiquetaOut)
-def atualizar_etiqueta(etiqueta_id: int, etiqueta: EtiquetaCreate, db: Session = Depends(get_db)):
-    db_etiqueta = update_etiqueta(db, etiqueta_id, etiqueta)
-    if not db_etiqueta:
-        raise HTTPException(status_code=404, detail="Etiqueta não encontrada")
-    return db_etiqueta
-
-@router.delete("/etiquetas/{etiqueta_id}", response_model=EtiquetaOut)
-def deletar_etiqueta(etiqueta_id: int, db: Session = Depends(get_db)):
-    db_etiqueta = delete_etiqueta(db, etiqueta_id)
-    if not db_etiqueta:
-        raise HTTPException(status_code=404, detail="Etiqueta não encontrada")
-    return db_etiqueta

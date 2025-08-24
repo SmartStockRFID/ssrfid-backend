@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models.peca import Peca, Etiqueta
-from app.schemas.peca import PecaCreate, PecaUpdate, EtiquetaCreate
+from app.models.peca import Peca
+from app.schemas.peca import PecaCreate, PecaUpdate
 
 # CRUD Peça
 def create_peca(db: Session, peca: PecaCreate):
@@ -19,7 +19,7 @@ def get_peca(db: Session, peca_id: int):
 def update_peca(db: Session, peca_id: int, peca: PecaUpdate):
     db_peca = db.query(Peca).filter(Peca.id == peca_id).first()
     if db_peca:
-        for key, value in peca.dict(exclude_unset=True).items():
+        for key, value in peca.model_dump(exclude_unset=True).items():
             setattr(db_peca, key, value)
         db.commit()
         db.refresh(db_peca)
@@ -31,33 +31,3 @@ def delete_peca(db: Session, peca_id: int):
         db.delete(db_peca)
         db.commit()
     return db_peca
-
-# CRUD Etiqueta
-def create_etiqueta(db: Session, etiqueta: EtiquetaCreate):
-    db_etiqueta = Etiqueta(**etiqueta.model_dump())
-    db.add(db_etiqueta)
-    db.commit()
-    db.refresh(db_etiqueta)
-    return db_etiqueta
-
-def get_etiquetas(db: Session):
-    return db.query(Etiqueta).all()
-
-def get_etiqueta(db: Session, etiqueta_id: int):
-    return db.query(Etiqueta).filter(Etiqueta.id == etiqueta_id).first()
-
-def update_etiqueta(db: Session, etiqueta_id: int, etiqueta: EtiquetaCreate):
-    db_etiqueta = db.query(Etiqueta).filter(Etiqueta.id == etiqueta_id).first()
-    if db_etiqueta:
-        for key, value in etiqueta.dict(exclude_unset=True).items():
-            setattr(db_etiqueta, key, value)
-        db.commit()
-        db.refresh(db_etiqueta)
-    return db_etiqueta
-
-def delete_etiqueta(db: Session, etiqueta_id: int):
-    db_etiqueta = db.query(Etiqueta).filter(Etiqueta.id == etiqueta_id).first()
-    if db_etiqueta:
-        db.delete(db_etiqueta)
-        db.commit()
-    return db_etiqueta

@@ -1,18 +1,4 @@
 from pydantic import BaseModel
-from typing import Optional, List
-
-class EtiquetaBase(BaseModel):
-    codigo_oem: str
-    rfid_uid: str
-    peca_id: int
-
-class EtiquetaCreate(EtiquetaBase):
-    pass
-
-class EtiquetaOut(EtiquetaBase):
-    id: int
-    class Config:
-        orm_mode = True
 
 class PecaBase(BaseModel):
     nome: str
@@ -32,6 +18,6 @@ class PecaUpdate(PecaBase):
 
 class PecaOut(PecaBase):
     id: int
-    etiquetas: Optional[List[EtiquetaOut]] = []
     class Config:
         orm_mode = True
+    

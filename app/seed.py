@@ -2,7 +2,7 @@
 import random
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models.peca import Peca, Etiqueta
+from app.models.peca import Peca
 
 # 10 categorias principais Toyota
 CATEGORIAS = {
@@ -55,70 +55,40 @@ anos = [
     "2020-2022", "2023-2024"
 ]
 
-def gerar_codigo_oem(categoria_id, serial):
-    # Exemplo: 1001-0001
-    return f"{categoria_id:04d}-{serial:04d}"
-
 def gerar_dados(qtd):
     db: Session = SessionLocal()
 
-    # Limpa tabelas
-    db.query(Etiqueta).delete()
+    # Limpa tabela
     db.query(Peca).delete()
     db.commit()
-    print("Tabelas 'pecas' e 'etiquetas' esvaziadas.")
+    print("Tabela 'pecas' esvaziada.")
 
-    pecas_dict = {}
-    etiquetas = []
-    usados_oem = set()
-    serials_categoria = {cat: 1 for cat in CATEGORIAS.keys()}
+    pecas_criadas = 0
 
     for i in range(1, qtd + 1):
         nome, modelo, categoria_id = random.choice(pecas_modelos)
-        chave_peca = (nome, modelo)
-        if chave_peca not in pecas_dict:
-            ano = random.choice(anos)
-            quantidade = random.randint(5, 50)
-            preco_custo = round(random.uniform(50, 600), 2)
-            preco_venda = round(preco_custo * random.uniform(1.3, 2.5), 2)
-            localizacao = f"A{random.randint(1,5)}-{random.randint(1,10):02d}"
-            peca = Peca(
-                nome=f"{nome} - {modelo}",
-                descricao=f"Peça genuína Toyota {nome}, compatível com {modelo} ({ano}). Categoria: {CATEGORIAS[categoria_id]}",
-                localizacao=localizacao,
-                quantidade=quantidade,
-                preco_custo=preco_custo,
-                preco_venda=preco_venda,
-                modelo_carro=modelo,
-                ano_carro=ano
-            )
-            db.add(peca)
-            db.flush()  # Garante id
-            pecas_dict[chave_peca] = peca.id if hasattr(peca, 'id') else None
-        else:
-            peca = db.query(Peca).filter_by(nome=f"{nome} - {modelo}").first()
-
-        # Gera OEM único por categoria
-        serial = serials_categoria[categoria_id]
-        codigo_oem = gerar_codigo_oem(categoria_id, serial)
-        while codigo_oem in usados_oem:
-            serials_categoria[categoria_id] += 1
-            serial = serials_categoria[categoria_id]
-            codigo_oem = gerar_codigo_oem(categoria_id, serial)
-        usados_oem.add(codigo_oem)
-        serials_categoria[categoria_id] += 1
-
-        rfid_uid = f"RFID{random.randint(100000,999999)}"
-        etiqueta = Etiqueta(
-            codigo_oem=codigo_oem,
-            rfid_uid=rfid_uid,
-            peca_id=peca.id if hasattr(peca, 'id') else None
+        ano = random.choice(anos)
+        quantidade = random.randint(5, 50)
+        preco_custo = round(random.uniform(50, 600), 2)
+        preco_venda = round(preco_custo * random.uniform(1.3, 2.5), 2)
+        localizacao = f"A{random.randint(1,5)}-{random.randint(1,10):02d}"
+        
+        peca = Peca(
+            nome=f"{nome} - {modelo}",
+            descricao=f"Peça genuína Toyota {nome}, compatível com {modelo} ({ano}). Categoria: {CATEGORIAS[categoria_id]}",
+            localizacao=localizacao,
+            quantidade=quantidade,
+            preco_custo=preco_custo,
+            preco_venda=preco_venda,
+            modelo_carro=modelo,
+            ano_carro=ano,
+            codigo_tipo=categoria_id
         )
-        etiquetas.append(etiqueta)
+        db.add(peca)
+        pecas_criadas += 1
 
-    db.add_all(etiquetas)
     db.commit()
-    print(f"{len(pecas_dict)} peças e {len(etiquetas)} etiquetas inseridas com sucesso.")
+    print(f"{pecas_criadas} peças inseridas com sucesso.")
     db.close()
 
 if __name__ == "__main__":
