@@ -10,7 +10,10 @@ router = APIRouter(prefix="/usuarios", tags=["usuarios"])
 
 
 @router.post("/", response_model=UsuarioOut, status_code=201)
-def criar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
+def criar_usuario(
+    usuario: UsuarioCreate,
+    db: Session = Depends(get_db),
+):
     if get_usuario_by_username(db, usuario.username):
         raise HTTPException(status_code=400, detail="Usuário já existe")
     return create_usuario(db, usuario)

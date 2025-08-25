@@ -1,7 +1,13 @@
+from typing import Tuple
+
+from sqlalchemy import delete
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, joinedload
 
+from app.core.exceptions import PecaNotFound
 from app.crud.usuario import get_usuario_by_username
-from app.models.conferencia import Conferencia, Etiqueta, Evento, Leitura, StatusConferencia
+from app.models.conferencia import Conferencia, Evento, Leitura, StatusConferencia, TagLida
+from app.models.peca import Peca
 from app.schemas.conferencia import ConferenciaCreate, EventoCreate, LeituraCreate
 
 
@@ -24,35 +30,63 @@ def registrar_eventos_em_conferencia(
     return conferencia_atual
 
 
+def limpar_tabela_tags(session: Session):
+    session.execute(delete(TagLida))
+    session.commit()
+
+
+def pegar_tag_ou_criar(session: Session, conferencia_id: int, tag_rfid: str) -> Tuple[TagLida, bool]:
+    stmt = (
+        insert(TagLida)
+        .values(conferencia_id=conferencia_id, rfid_uuid=tag_rfid)
+        .on_conflict_do_nothing(index_elements=["rfid_uuid"])
+        .returning(TagLida)
+    )
+
+    result = session.execute(stmt).fetchone()
+
+    if result:
+        instance = result[0]
+        session.add(instance)
+        return instance, True
+
+    instance = session.query(TagLida).filter_by(conferencia_id=conferencia_id, rfid_uuid=tag_rfid).one()
+    return instance, False
+
+
 def registrar_leituras_em_conferencia(
     session: Session,
     conferencia_atual: Conferencia,
     leituras: list[LeituraCreate],
 ) -> Conferencia | None:
-    leituras_registradas = []
     for leitura in leituras:
-        etiqueta = (
-            session.query(Etiqueta)
-            .options(joinedload(Etiqueta.produto))
-            .filter(Etiqueta.codigo_oem == leitura.codigo_oem)
-            .one_or_none()
-        )
+        _, tag_foi_criada = pegar_tag_ou_criar(session, conferencia_atual.id, leitura.rfid_etiqueta)
 
-        if not etiqueta:
-            continue
+        if not tag_foi_criada:
+            continue  # TAG já lida, aborta
 
-        leituras_registradas.append(
-            Leitura(
-                etiqueta=etiqueta,
-                conferencia=conferencia_atual,
-                timestamp_leitura=leitura.lido_em,
+        produto = session.query(Peca).filter(Peca.codigo_produto == leitura.codigo_produto).one_or_none()
+        if not produto:
+            raise PecaNotFound(f"Produto {leitura.codigo_produto} não encontrado")
+
+        stmt = (
+            insert(Leitura)
+            .values(
+                conferencia_id=conferencia_atual.id,
+                produto_id=produto.id,
+                codigo_categoria=produto.codigo_produto,
+                quantidade=1,
+            )
+            # Caso exista um conflito (leitura já registrada) atualiza somente a quantidade
+            .on_conflict_do_update(
+                index_elements=["conferencia_id", "produto_id"],
+                set_={"quantidade": Leitura.quantidade + 1},
             )
         )
 
-    session.add_all(leituras_registradas)
-    conferencia_atual.leituras.extend(leituras_registradas)
-    session.commit()
+        session.execute(stmt)
 
+    session.commit()
     return conferencia_atual
 
 
@@ -74,6 +108,7 @@ def get_conferencias(session: Session) -> list[Conferencia]:
 
 
 def criar_conferencia(session: Session, nova_conferencia: ConferenciaCreate) -> Conferencia:
+    limpar_tabela_tags(session)
     funcionario_rel = get_usuario_by_username(session, nova_conferencia.username_funcionario)
     conferencia = Conferencia(
         **nova_conferencia.model_dump(exclude=["id", "username_funcionario"]),

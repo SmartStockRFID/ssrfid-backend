@@ -8,7 +8,7 @@ class Peca(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String, nullable=False)
-    codigo_oem = Column(String, unique=True, nullable=False)
+    codigo_produto = Column(String, unique=True, nullable=False)
     descricao = Column(String, nullable=False)
     localizacao = Column(String, nullable=False)
     quantidade = Column(Integer, nullable=False)
@@ -16,4 +16,3 @@ class Peca(Base):
     preco_venda = Column(Float, nullable=False)
     modelo_carro = Column(String, nullable=False)
     ano_carro = Column(String, nullable=False)
-    rfid_uid = Column(String, unique=True, nullable=True)

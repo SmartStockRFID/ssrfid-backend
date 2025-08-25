@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -14,25 +14,31 @@ class StatusConferencia(str, enum.Enum):
     CANCELADA = "cancelada"
 
 
-class Etiqueta(Base):
-    __tablename__ = "etiqueta"
+# Tabela somente para consultas otimizadas de unicidade
+class TagLida(Base):
+    __tablename__ = "tag_lida"
     id = Column(Integer, primary_key=True, index=True)
-    produto_id = Column(Integer, ForeignKey("pecas.id"), nullable=False)
-    rdid_uuid = Column(String, nullable=False)
-    codigo_oem = Column(String, nullable=False)
-
-    produto = relationship("Peca")
+    conferencia_id = Column(Integer, ForeignKey("conferencia.id"), nullable=False)
+    rfid_uuid = Column(String, nullable=False, unique=True)
 
 
 class Leitura(Base):
     __tablename__ = "leitura"
     id = Column(Integer, primary_key=True, index=True)
-    etiqueta_id = Column(Integer, ForeignKey("etiqueta.id"), nullable=False)
+    produto_id = Column(Integer, ForeignKey("pecas.id"), nullable=False)
     conferencia_id = Column(Integer, ForeignKey("conferencia.id"), nullable=False)
-    timestamp_leitura = Column(DateTime(timezone=True), server_default=func.now())
+    codigo_categoria = Column(String, nullable=False)
+    quantidade = Column(Integer, default=0)
+    ultima_leitura_em = Column(DateTime(timezone=True), server_default=func.now())
 
-    etiqueta = relationship("Etiqueta")
+    produto = relationship("Peca")
     conferencia = relationship("Conferencia", back_populates="leituras")
+
+    __table_args__ = (
+        UniqueConstraint(
+            "conferencia_id", "produto_id", name="uq_conferencia_produto"
+        ),  # Garante que não exista o mesmo produto associado a mesma conferência, isso é controlado pela quantidade
+    )
 
 
 class Evento(Base):

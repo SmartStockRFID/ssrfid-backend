@@ -22,15 +22,19 @@ class EventoCreate(EventoBase):
 
 
 class LeituraBase(BaseModel):
-    codigo_oem: str
-    rfid_etiqueta: str
-    lido_em: datetime.datetime
-
+    codigo_produto: str
     model_config = ConfigDict(from_attributes=True)
 
 
 class LeituraOut(LeituraBase):
     id: int
+    ultima_leitura: datetime.datetime
+    quantidade: int
+
+
+class LeituraCreate(LeituraBase):
+    lido_em: datetime.datetime
+    rfid_etiqueta: str
 
 
 class ConferenciaBase(BaseModel):
@@ -52,9 +56,9 @@ class ConferenciaOut(ConferenciaBase):
             leituras=[
                 LeituraOut(
                     id=leitura.id,
-                    codigo_oem=leitura.etiqueta.codigo_oem if leitura.etiqueta else "desconhecido",
-                    rfid_etiqueta=leitura.etiqueta.rfid_uuid if leitura.etiqueta else "desconhecido",
-                    lido_em=leitura.timestamp_leitura,
+                    codigo_produto=leitura.codigo_categoria,
+                    ultima_leitura=leitura.ultima_leitura_em,
+                    quantidade=leitura.quantidade or 0,
                 )
                 for leitura in nova_conferencia.leituras
             ],
@@ -71,8 +75,4 @@ class ConferenciaOut(ConferenciaBase):
 
 
 class ConferenciaCreate(ConferenciaBase):
-    pass
-
-
-class LeituraCreate(LeituraBase):
     pass
