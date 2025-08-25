@@ -4,7 +4,7 @@ from app.models.peca import Peca
 from app.schemas.peca import PecaCreate, PecaFilter, PecaUpdate
 
 
-# Create
+# CRUD Peça
 def create_peca(db: Session, peca: PecaCreate):
     db_peca = Peca(**peca.model_dump())
     db.add(db_peca)
