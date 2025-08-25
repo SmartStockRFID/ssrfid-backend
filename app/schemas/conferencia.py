@@ -41,7 +41,7 @@ class ConferenciaBase(BaseModel):
     username_funcionario: str
 
 
-class ConferenciaOut(ConferenciaBase):
+class ConferenciaDetailsOut(ConferenciaBase):
     id: int
     status: str
     leituras: list[LeituraOut]
@@ -76,3 +76,16 @@ class ConferenciaOut(ConferenciaBase):
 
 class ConferenciaCreate(ConferenciaBase):
     pass
+
+
+class ConferenciaMinimalOut(ConferenciaBase):
+    id: int
+    status: str
+
+    @classmethod
+    def from_conferencia_model(cls, nova_conferencia: Conferencia):
+        return cls(
+            id=nova_conferencia.id,
+            status=nova_conferencia.status,
+            username_funcionario=nova_conferencia.funcionario.username,
+        )

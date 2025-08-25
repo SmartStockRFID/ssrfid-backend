@@ -22,7 +22,23 @@ class ConferenciaNotFound(AppException):
     def __init__(self, detail: str | None = None):
         super().__init__(
             detail=detail if detail else "Conferência não encontrada",
-            code=status.HTTP_400_BAD_REQUEST,
+            code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class ConferenciaAlreadyClosed(AppException):
+    def __init__(self):
+        super().__init__(
+            detail="Conferência já fechada/cancelada",
+            code=status.HTTP_409_CONFLICT,
+        )
+
+
+class FuncionarioNotFound(AppException):
+    def __init__(self):
+        super().__init__(
+            detail="Funcionário não encontrado",
+            code=status.HTTP_404_NOT_FOUND,
         )
 
 
@@ -30,5 +46,5 @@ class PecaNotFound(AppException):
     def __init__(self, detail: str | None = None):
         super().__init__(
             detail=detail if detail else "Produto não encontrada",
-            code=status.HTTP_400_BAD_REQUEST,
+            code=status.HTTP_404_NOT_FOUND,
         )

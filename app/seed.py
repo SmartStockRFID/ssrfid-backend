@@ -1,17 +1,12 @@
-
 import random
+
 from sqlalchemy.orm import Session
+
 from app.database import SessionLocal
 from app.models.peca import Peca
 
 # Categorias principais
-CATEGORIAS = {
-    "FILTRO": "Filtro",
-    "FREIO": "Freio",
-    "SUSP": "Suspensão",
-    "ELETR": "Elétrico",
-    "MOTOR": "Motor"
-}
+CATEGORIAS = {"FILTRO": "Filtro", "FREIO": "Freio", "SUSP": "Suspensão", "ELETR": "Elétrico", "MOTOR": "Motor"}
 
 pecas_modelos = [
     ("Filtro de Óleo", "Corolla", "FILTRO"),
@@ -36,14 +31,13 @@ pecas_modelos = [
     ("Retrovisor", "Corolla Cross", "SUSP"),
 ]
 
-anos = [
-    "2005-2007", "2008-2010", "2011-2013", "2014-2016", "2017-2019",
-    "2020-2022", "2023-2024"
-]
+anos = ["2005-2007", "2008-2010", "2011-2013", "2014-2016", "2017-2019", "2020-2022", "2023-2024"]
+
 
 def gerar_codigo_oem(categoria, modelo, serial):
-    # Exemplo: FILTRO-COROLLA-001
+    # Exemplo: FREIO-COROLLA-001
     return f"{categoria}-{modelo.upper().replace(' ', '')}-{serial:03d}"
+
 
 def gerar_pecas(qtd):
     db: Session = SessionLocal()
@@ -59,33 +53,27 @@ def gerar_pecas(qtd):
         nome, modelo, categoria = random.choice(pecas_modelos)
         serial = i
         codigo_oem = gerar_codigo_oem(categoria, modelo, serial)
+
         while codigo_oem in usados:
             serial += 1
             codigo_oem = gerar_codigo_oem(categoria, modelo, serial)
         usados.add(codigo_oem)
+
         ano = random.choice(anos)
-        quantidade = random.randint(5, 50)
-        preco_custo = round(random.uniform(50, 600), 2)
-        preco_venda = round(preco_custo * random.uniform(1.3, 2.5), 2)
-        localizacao = f"A{random.randint(1,5)}-{random.randint(1,10):02d}"
+        localizacao = f"S{random.randint(1, 5)}-P{random.randint(1, 20):02d}"
 
         peca = Peca(
             nome=f"{nome} - {modelo}",
-            codigo_oem=codigo_oem,
+            codigo_produto=codigo_oem,
             descricao=f"Peça genuína Toyota {nome}, compatível com {modelo} ({ano}). Categoria: {CATEGORIAS[categoria]}",
             localizacao=localizacao,
-            quantidade=quantidade,
-            preco_custo=preco_custo,
-            preco_venda=preco_venda,
-            modelo_carro=modelo,
-            ano_carro=ano,
-            rfid_uid=None  # deixa nulo para associar depois
         )
         registros.append(peca)
 
     db.add_all(registros)
     db.commit()
-    print(f"{qtd} registros inseridos com sucesso.")
+    print(f"{qtd} categorias de produto inseridas com sucesso.")
+
 
 if __name__ == "__main__":
     gerar_pecas(100)
