@@ -26,3 +26,4 @@ class PecaOut(PecaBase):
 
     class Config:
         orm_mode = True
+    

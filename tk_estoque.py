@@ -3,7 +3,6 @@ from tkinter import ttk, messagebox
 import requests
 
 API_URL = "http://localhost:8000/pecas"
-ETIQUETAS_URL = "http://localhost:8000/pecas/etiquetas"
 LOGIN_URL = "http://localhost:8000/login"
 USUARIOS_URL = "http://localhost:8000/usuarios"
 
@@ -65,7 +64,7 @@ class EstoqueApp:
         tk.Button(frame, text="Buscar", command=self.buscar_pecas).pack(side=tk.LEFT)
         tk.Button(frame, text="Atualizar", command=self.load_pecas).pack(side=tk.LEFT, padx=5)
 
-        self.tree = ttk.Treeview(self.root, columns=("id", "nome", "modelo_carro", "ano_carro", "quantidade"), show="headings")
+        self.tree = ttk.Treeview(self.root, columns=("id", "nome", "modelo_carro", "ano_carro", "quantidade", "codigo_tipo"), show="headings")
         for col in self.tree["columns"]:
             self.tree.heading(col, text=col)
             self.tree.column(col, width=120)
@@ -76,10 +75,12 @@ class EstoqueApp:
         tk.Button(btn_frame, text="Adicionar Peça", command=self.adicionar_peca).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Editar Peça", command=self.editar_peca).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Deletar Peça", command=self.deletar_peca).pack(side=tk.LEFT, padx=5)
-        tk.Button(btn_frame, text="Etiquetas", command=self.abrir_etiquetas).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Voltar", command=self.voltar_busca).pack(side=tk.LEFT, padx=5)
+        
+        # Botão para criar usuário (apenas para admins)
         if self.user_role == "admin":
-            tk.Button(btn_frame, text="Criar Usuário", command=self.criar_usuario, bg="#4CAF50", fg="white", relief=tk.RAISED).pack(side=tk.LEFT, padx=5)
+            tk.Button(btn_frame, text="Criar Usuário", command=self.criar_usuario, 
+                     bg="#4CAF50", fg="white", relief=tk.RAISED).pack(side=tk.LEFT, padx=5)
 
     def voltar_busca(self):
         self.search_var.set("")
@@ -93,7 +94,7 @@ class EstoqueApp:
             pecas = resp.json()
             self.tree.delete(*self.tree.get_children())
             for p in pecas:
-                self.tree.insert("", "end", values=(p["id"], p["nome"], p["modelo_carro"], p["ano_carro"], p["quantidade"]))
+                self.tree.insert("", "end", values=(p["id"], p["nome"], p["modelo_carro"], p["ano_carro"], p["quantidade"], p.get("codigo_tipo", "")))
         except Exception as e:
             messagebox.showerror("Erro", f"Falha ao carregar peças: {e}")
 
@@ -109,7 +110,7 @@ class EstoqueApp:
             pecas = resp.json()
             self.tree.delete(*self.tree.get_children())
             for p in pecas:
-                self.tree.insert("", "end", values=(p["id"], p["nome"], p["modelo_carro"], p["ano_carro"], p["quantidade"]))
+                self.tree.insert("", "end", values=(p["id"], p["nome"], p["modelo_carro"], p["ano_carro"], p["quantidade"], p.get("codigo_tipo", "")))
         except requests.HTTPError as e:
             if e.response.status_code == 404:
                 messagebox.showinfo("Busca", "Nenhuma peça encontrada.")
@@ -148,8 +149,8 @@ class EstoqueApp:
     def peca_form(self, title, peca_id=None):
         form = tk.Toplevel(self.root)
         form.title(title)
-        form.geometry("400x350")
-        campos = ["nome", "descricao", "localizacao", "quantidade", "preco_custo", "preco_venda", "modelo_carro", "ano_carro"]
+        form.geometry("400x400")
+        campos = ["nome", "descricao", "localizacao", "quantidade", "preco_custo", "preco_venda", "modelo_carro", "ano_carro", "codigo_tipo"]
         entries = {}
         for i, campo in enumerate(campos):
             tk.Label(form, text=campo).grid(row=i, column=0, sticky=tk.W, pady=2)
@@ -162,11 +163,23 @@ class EstoqueApp:
                 resp.raise_for_status()
                 peca = resp.json()
                 for campo in campos:
-                    entries[campo].insert(0, peca[campo])
+                    entries[campo].insert(0, peca.get(campo, ""))
             except Exception as e:
                 messagebox.showerror("Erro", f"Falha ao carregar peça: {e}")
         def salvar():
             dados = {campo: entries[campo].get() for campo in campos}
+            # Converter campos numéricos
+            try:
+                dados["quantidade"] = int(dados["quantidade"])
+                dados["preco_custo"] = float(dados["preco_custo"])
+                dados["preco_venda"] = float(dados["preco_venda"])
+                if dados["codigo_tipo"]:
+                    dados["codigo_tipo"] = int(dados["codigo_tipo"])
+                else:
+                    dados["codigo_tipo"] = None
+            except ValueError:
+                messagebox.showerror("Erro", "Quantidade, preços e código tipo devem ser números.")
+                return
             try:
                 headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
                 if peca_id:
@@ -180,76 +193,6 @@ class EstoqueApp:
             except Exception as e:
                 messagebox.showerror("Erro", f"Falha ao salvar peça: {e}")
         tk.Button(form, text="Salvar", command=salvar).grid(row=len(campos), column=0, columnspan=2, pady=10)
-
-    def abrir_etiquetas(self):
-        win = tk.Toplevel(self.root)
-        win.title("Etiquetas")
-        win.geometry("700x400")
-
-        tree = ttk.Treeview(win, columns=("id", "codigo_oem", "rfid_uid", "peca_id"), show="headings")
-        for col in tree["columns"]:
-            tree.heading(col, text=col)
-            tree.column(col, width=150)
-        tree.pack(expand=True, fill=tk.BOTH, pady=10)
-
-        def load_etiquetas():
-            try:
-                headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-                resp = requests.get(ETIQUETAS_URL + "/", headers=headers)
-                resp.raise_for_status()
-                etiquetas = resp.json()
-                tree.delete(*tree.get_children())
-                for e in etiquetas:
-                    tree.insert("", "end", values=(e["id"], e["codigo_oem"], e["rfid_uid"], e["peca_id"]))
-            except Exception as e:
-                messagebox.showerror("Erro", f"Falha ao carregar etiquetas: {e}")
-
-        def adicionar_etiqueta():
-            form = tk.Toplevel(win)
-            form.title("Adicionar Etiqueta")
-            form.geometry("350x250")
-            campos = ["codigo_oem", "rfid_uid", "peca_id"]
-            entries = {}
-            for i, campo in enumerate(campos):
-                tk.Label(form, text=campo).grid(row=i, column=0, sticky=tk.W, pady=2)
-                entries[campo] = tk.Entry(form, width=25)
-                entries[campo].grid(row=i, column=1, pady=2)
-            def salvar():
-                dados = {campo: entries[campo].get() for campo in campos}
-                try:
-                    headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-                    resp = requests.post(ETIQUETAS_URL + "/", json=dados, headers=headers)
-                    resp.raise_for_status()
-                    load_etiquetas()
-                    messagebox.showinfo("Sucesso", "Etiqueta salva com sucesso.")
-                    form.destroy()
-                except Exception as e:
-                    messagebox.showerror("Erro", f"Falha ao salvar etiqueta: {e}")
-            tk.Button(form, text="Salvar", command=salvar).grid(row=len(campos), column=0, columnspan=2, pady=10)
-
-        def deletar_etiqueta():
-            item = tree.selection()
-            if not item:
-                messagebox.showwarning("Atenção", "Selecione uma etiqueta para deletar.")
-                return
-            etiqueta_id = tree.item(item[0])["values"][0]
-            if messagebox.askyesno("Confirmação", "Deseja realmente deletar esta etiqueta?"):
-                try:
-                    headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-                    resp = requests.delete(f"{ETIQUETAS_URL}/{etiqueta_id}", headers=headers)
-                    resp.raise_for_status()
-                    load_etiquetas()
-                    messagebox.showinfo("Sucesso", "Etiqueta deletada com sucesso.")
-                except Exception as e:
-                    messagebox.showerror("Erro", f"Falha ao deletar etiqueta: {e}")
-
-        btn_frame = tk.Frame(win)
-        btn_frame.pack(pady=5)
-        tk.Button(btn_frame, text="Adicionar Etiqueta", command=adicionar_etiqueta).pack(side=tk.LEFT, padx=5)
-        tk.Button(btn_frame, text="Deletar Etiqueta", command=deletar_etiqueta).pack(side=tk.LEFT, padx=5)
-        tk.Button(btn_frame, text="Atualizar", command=load_etiquetas).pack(side=tk.LEFT, padx=5)
-
-        load_etiquetas()
 
     def criar_usuario(self):
         """Abre formulário para criação de novo usuário"""

@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
 
+
 from app.models.peca import Peca
 from app.schemas.peca import PecaCreate, PecaFilter, PecaUpdate
+
 
 
 # CRUD Peça
@@ -27,11 +29,12 @@ def get_peca(db: Session, peca_id: int):
 def update_peca(db: Session, peca_id: int, peca: PecaUpdate):
     db_peca = db.query(Peca).filter(Peca.id == peca_id).first()
     if db_peca:
-        for key, value in peca.dict(exclude_unset=True).items():
+        for key, value in peca.model_dump(exclude_unset=True).items():
             setattr(db_peca, key, value)
         db.commit()
         db.refresh(db_peca)
     return db_peca
+
 
 
 def listar_pecas_com_filtro(db: Session, filtros: PecaFilter) -> list[Peca]:
@@ -47,6 +50,7 @@ def listar_pecas_com_filtro(db: Session, filtros: PecaFilter) -> list[Peca]:
 
 
 # Delete
+
 def delete_peca(db: Session, peca_id: int):
     db_peca = db.query(Peca).filter(Peca.id == peca_id).first()
     if db_peca:
