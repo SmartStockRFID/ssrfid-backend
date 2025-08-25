@@ -199,6 +199,20 @@ wheels = [
 ]
 
 [[package]]
+name = "fastapi-filters"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/61/d1/7291b66587f2b27522867fb403db97719436486273a0a4c9584f812dd792/fastapi_filters-0.3.0.tar.gz", hash = "sha256:bc63b6c607e7bf26a80580c2c80464f77120f772869333e919984299e7dc748d", size = 14672 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/57/4e/b9fcf99b0d36fe9e24f4e57a278ebf94d8e1e438c153aee583953095e147/fastapi_filters-0.3.0-py3-none-any.whl", hash = "sha256:b6af5b9862319893f744b9fc677d737c1c26d1132fbf70dc2069f9355513b74b", size = 18638 },
+]
+
+[[package]]
 name = "greenlet"
 version = "3.2.4"
 source = { registry = "https://pypi.org/simple" }
@@ -681,6 +695,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "fastapi-cli" },
     { name = "fastapi-cloud-cli" },
+    { name = "fastapi-filters" },
     { name = "greenlet" },
     { name = "h11" },
     { name = "httpcore" },
@@ -738,6 +753,7 @@ requires-dist = [
     { name = "fastapi", specifier = "==0.116.1" },
     { name = "fastapi-cli", specifier = "==0.0.8" },
     { name = "fastapi-cloud-cli", specifier = "==0.1.5" },
+    { name = "fastapi-filters", specifier = ">=0.3.0" },
     { name = "greenlet", specifier = "==3.2.4" },
     { name = "h11", specifier = "==0.16.0" },
     { name = "httpcore", specifier = "==1.0.9" },

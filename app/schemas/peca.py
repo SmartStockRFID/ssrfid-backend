@@ -15,11 +15,11 @@ class PecaBase(BaseModel):
     codigo_produto: str
     descricao: str
     localizacao: str
-    quantidade: int
-    preco_custo: float
-    preco_venda: float
-    modelo_carro: str
-    ano_carro: str
+
+
+class PecaFilter(BaseModel):
+    nome: str | None = None
+    codigo_categoria: str | None = None
 
 
 class PecaCreate(PecaBase):

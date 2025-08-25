@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models.peca import Peca
-from app.schemas.peca import PecaCreate, PecaUpdate
+from app.schemas.peca import PecaCreate, PecaFilter, PecaUpdate
 
 
 # Create
@@ -32,6 +32,18 @@ def update_peca(db: Session, peca_id: int, peca: PecaUpdate):
         db.commit()
         db.refresh(db_peca)
     return db_peca
+
+
+def listar_pecas_com_filtro(db: Session, filtros: PecaFilter) -> list[Peca]:
+    query = db.query(Peca)
+
+    if filtros.nome:
+        query = query.filter(Peca.nome.ilike(f"%{filtros.nome}%"))
+
+    if filtros.codigo_categoria:
+        query = query.filter(Peca.codigo_categoria == filtros.codigo_categoria)
+
+    return query.all()
 
 
 # Delete

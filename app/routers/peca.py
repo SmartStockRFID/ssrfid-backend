@@ -2,34 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.crud.peca import create_peca, delete_peca, get_peca, get_pecas, update_peca
+from app.crud.peca import create_peca, delete_peca, get_peca, listar_pecas_com_filtro, update_peca
 from app.database import get_db
 from app.models.peca import Peca
-from app.schemas.peca import EtiquetaCreate, PecaCreate, PecaOut, PecaUpdate
+from app.schemas.peca import PecaCreate, PecaFilter, PecaOut, PecaUpdate
 
 router = APIRouter(prefix="/pecas", tags=["pecas"])
 
 
 @router.get("/", response_model=list[PecaOut])
-def listar_pecas(db: Session = Depends(get_db)):
-    return get_pecas(db)
-
-
-@router.get("/busca", response_model=list[PecaOut])
-def buscar_pecas_por_nome(nome: str = Query(..., min_length=3), db: Session = Depends(get_db)):
-    query = db.query(Peca).filter(func.lower(Peca.nome).contains(nome.lower()))
-    resultados = query.all()
-    if not resultados:
-        raise HTTPException(status_code=404, detail="Nenhuma peça encontrada")
-    return resultados
-
-
-@router.get("/search", response_model=PecaOut)
-def buscar_peca_por_rfid(rfid_uid: str, db: Session = Depends(get_db)):
-    peca = db.query(Peca).filter(Peca.rfid_uid == rfid_uid).first()
-    if not peca:
-        raise HTTPException(status_code=404, detail="Peça não encontrada")
-    return peca
+def listar_pecas(db: Session = Depends(get_db), filtros: PecaFilter = Query()):
+    pecas = listar_pecas_com_filtro(db, filtros)
+    return pecas
 
 
 @router.get("/{peca_id}", response_model=PecaOut)
