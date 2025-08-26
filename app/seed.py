@@ -1,8 +1,10 @@
-
 import random
+
 from sqlalchemy.orm import Session
+
 from app.database import SessionLocal
 from app.models.peca import Peca
+
 
 # 10 categorias principais Toyota
 CATEGORIAS = {
@@ -18,42 +20,32 @@ CATEGORIAS = {
     1010: "Injeção"
 }
 
+
 pecas_modelos = [
-    ("Filtro de Óleo", "Corolla", 1001),
-    ("Filtro de Ar", "Corolla", 1001),
-    ("Pastilha de Freio Dianteira", "Corolla", 1004),
-    ("Pastilha de Freio Traseira", "Corolla", 1004),
-    ("Amortecedor Dianteiro", "Hilux", 1003),
-    ("Amortecedor Traseiro", "Hilux", 1003),
-    ("Bateria", "Yaris", 1005),
-    ("Velas de Ignição", "Etios", 1005),
-    ("Correia Dentada", "Hilux", 1001),
-    ("Radiador", "Corolla Cross", 1006),
-    ("Alternador", "Hilux", 1005),
-    ("Motor de Partida", "Corolla", 1005),
-    ("Disco de Freio Dianteiro", "Corolla Cross", 1004),
-    ("Disco de Freio Traseiro", "Corolla Cross", 1004),
-    ("Bomba de Combustível", "Etios", 1010),
-    ("Sensor de Oxigênio", "Yaris", 1010),
-    ("Injetor", "Corolla", 1010),
-    ("Kit Embreagem", "Hilux", 1008),
-    ("Parabrisa", "Yaris", 1006),
-    ("Retrovisor", "Corolla Cross", 1007),
-    ("Catalisador", "Corolla", 1009),
-    ("Sensor ABS", "Hilux", 1004),
-    ("Bomba de Óleo", "Corolla", 1001),
-    ("Coxim do Motor", "Yaris", 1001),
-    ("Módulo de Injeção", "Etios", 1010),
-    ("Cabo de Vela", "Corolla", 1005),
-    ("Reservatório de Expansão", "Corolla Cross", 1006),
-    ("Bomba de Direção Hidráulica", "Hilux", 1007),
-    ("Sensor de Temperatura", "Yaris", 1006),
+    ("Filtro de Óleo", "Corolla", "FILTRO"),
+    ("Filtro de Ar", "Corolla", "FILTRO"),
+    ("Pastilha de Freio Dianteira", "Corolla", "FREIO"),
+    ("Pastilha de Freio Traseira", "Corolla", "FREIO"),
+    ("Amortecedor Dianteiro", "Hilux", "SUSP"),
+    ("Amortecedor Traseiro", "Hilux", "SUSP"),
+    ("Bateria", "Yaris", "ELETR"),
+    ("Velas de Ignição", "Etios", "ELETR"),
+    ("Correia Dentada", "Hilux", "MOTOR"),
+    ("Radiador", "Corolla Cross", "MOTOR"),
+    ("Alternador", "Hilux", "ELETR"),
+    ("Motor de Partida", "Corolla", "ELETR"),
+    ("Disco de Freio Dianteiro", "Corolla Cross", "FREIO"),
+    ("Disco de Freio Traseiro", "Corolla Cross", "FREIO"),
+    ("Bomba de Combustível", "Etios", "MOTOR"),
+    ("Sensor de Oxigênio", "Yaris", "ELETR"),
+    ("Injetor", "Corolla", "MOTOR"),
+    ("Kit Embreagem", "Hilux", "MOTOR"),
+    ("Parabrisa", "Yaris", "SUSP"),
+    ("Retrovisor", "Corolla Cross", "SUSP"),
 ]
 
-anos = [
-    "2005-2007", "2008-2010", "2011-2013", "2014-2016", "2017-2019",
-    "2020-2022", "2023-2024"
-]
+anos = ["2005-2007", "2008-2010", "2011-2013", "2014-2016", "2017-2019", "2020-2022", "2023-2024"]
+
 
 def gerar_dados(qtd):
     db: Session = SessionLocal()
@@ -65,7 +57,11 @@ def gerar_dados(qtd):
 
     pecas_criadas = 0
 
+
+    registros = []
+    usados = set()
     for i in range(1, qtd + 1):
+
         nome, modelo, categoria_id = random.choice(pecas_modelos)
         ano = random.choice(anos)
         quantidade = random.randint(5, 50)
@@ -91,5 +87,6 @@ def gerar_dados(qtd):
     print(f"{pecas_criadas} peças inseridas com sucesso.")
     db.close()
 
+
 if __name__ == "__main__":
-    gerar_dados(100)
+    gerar_pecas(100)

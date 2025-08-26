@@ -1,14 +1,23 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordRequestForm
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from app.routers import peca
-from app.routers import usuario
-from app.auth import authenticate_user, create_access_token
-from app.database import get_db
+from fastapi.responses import RedirectResponse
 
-app = FastAPI()
+from app.core.exception_handler import ExceptionHandler
+from app.routers import auth, conferencia, peca, usuario
+from app.settings import app_settings
+
+app = FastAPI(
+    title=app_settings.PROJECT_NAME,
+    description=app_settings.PROJECT_DESCRIPTION,
+    version=app_settings.PROJECT_VERSION,
+)
+
+
+# Redirecionamento padrão para /docs
+@app.get("/", include_in_schema=False)
+def redirect_to_docs():
+    return RedirectResponse(url="/docs")
+
 
 # Configuração do CORS
 app.add_middleware(
@@ -19,13 +28,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário ou senha inválidos")
-    access_token = create_access_token(data={"sub": user.username, "role": user.role})
-    return {"access_token": access_token, "token_type": "bearer"}
 
+app.include_router(auth.router)
 app.include_router(peca.router)
 app.include_router(usuario.router)
+app.include_router(conferencia.router)
+
+ExceptionHandler.handle(app)
