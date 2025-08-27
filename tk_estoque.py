@@ -173,52 +173,63 @@ class EstoqueApp:
                 messagebox.showerror("Erro", f"Falha ao deletar peça: {e}")
 
     def peca_form(self, title, peca_id=None):
+        import tkinter as tk
+        import requests
         form = tk.Toplevel(self.root)
         form.title(title)
-        form.geometry("400x350")
         campos = ["nome", "codigo_produto", "descricao", "localizacao"]
         entries = {}
         for i, campo in enumerate(campos):
             tk.Label(form, text=campo).grid(row=i, column=0, sticky=tk.W, pady=2)
             entries[campo] = tk.Entry(form, width=30)
             entries[campo].grid(row=i, column=1, pady=2)
+
+        # Se edição, preenche os campos
         if peca_id:
             try:
-                headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+                headers = {"Authorization": f"Bearer {self.token}"}
                 resp = requests.get(f"{API_URL}/{peca_id}", headers=headers)
-                resp.raise_for_status()
-                peca = resp.json()
-                for campo in campos:
-                    entries[campo].insert(0, peca.get(campo, ""))
+                if resp.status_code == 200:
+                    peca = resp.json()
+                    for campo in campos:
+                        entries[campo].insert(0, peca.get(campo, ""))
+                else:
+                    messagebox.showerror("Erro", "Não foi possível carregar a peça.")
             except Exception as e:
-                messagebox.showerror("Erro", f"Falha ao carregar peça: {e}")
+                messagebox.showerror("Erro", f"Erro ao buscar peça: {e}")
 
         def salvar():
-            dados = {campo: entries[campo].get() for campo in campos}
-            # Converter campos numéricos
+            dados = {campo: entries[campo].get().strip() for campo in campos}
+            # Validação de obrigatórios
+            for campo in campos:
+                if not dados[campo]:
+                    messagebox.showerror("Erro", f"O campo '{campo}' é obrigatório.")
+                    return
+            # Unicidade do codigo_produto (apenas ao criar)
+            if not peca_id:
+                try:
+                    headers = {"Authorization": f"Bearer {self.token}"}
+                    resp = requests.get(f"{API_URL}?codigo_produto={dados['codigo_produto']}", headers=headers)
+                    if resp.status_code == 200 and resp.json():
+                        messagebox.showerror("Erro", "Já existe uma peça com este código de produto.")
+                        return
+                except Exception:
+                    pass
+            # Envio para API
             try:
-                dados["quantidade"] = int(dados["quantidade"])
-                dados["preco_custo"] = float(dados["preco_custo"])
-                dados["preco_venda"] = float(dados["preco_venda"])
-                if dados["codigo_tipo"]:
-                    dados["codigo_tipo"] = int(dados["codigo_tipo"])
-                else:
-                    dados["codigo_tipo"] = None
-            except ValueError:
-                messagebox.showerror("Erro", "Quantidade, preços e código tipo devem ser números.")
-                return
-            try:
-                headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+                headers = {"Authorization": f"Bearer {self.token}"}
                 if peca_id:
                     resp = requests.put(f"{API_URL}/{peca_id}", json=dados, headers=headers)
                 else:
                     resp = requests.post(API_URL, json=dados, headers=headers)
-                resp.raise_for_status()
-                self.load_pecas()
-                messagebox.showinfo("Sucesso", "Peça salva com sucesso.")
-                form.destroy()
+                if resp.status_code in (200, 201):
+                    messagebox.showinfo("Sucesso", "Peça salva com sucesso!")
+                    form.destroy()
+                    self.load_pecas()
+                else:
+                    messagebox.showerror("Erro", f"Erro ao salvar peça: {resp.text}")
             except Exception as e:
-                messagebox.showerror("Erro", f"Falha ao salvar peça: {e}")
+                messagebox.showerror("Erro", f"Erro ao salvar peça: {e}")
 
         tk.Button(form, text="Salvar", command=salvar).grid(row=len(campos), column=0, columnspan=2, pady=10)
 
