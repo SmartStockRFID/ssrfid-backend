@@ -5,12 +5,26 @@ class AppSettings(BaseSettings):
     PROJECT_NAME: str = "SRFID Backend"
     PROJECT_DESCRIPTION: str = "A API REST para acesso dos recursos do sistema SmartRFID"
     PROJECT_VERSION: str = "0.0.1"
-    POSTGRES_URL: str = "postgresql+psycopg://postgres:2411@localhost:5432/estoque"
+
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "2411"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_DB: str = "estoque"
 
     model_config: SettingsConfigDict = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
+        "extra": "ignore",
     }
+
+    @property
+    def POSTGRES_URL(self) -> str:
+        return (
+            f"postgresql+psycopg://{self.POSTGRES_USER}:"
+            f"{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:"
+            f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
 
 app_settings = AppSettings()

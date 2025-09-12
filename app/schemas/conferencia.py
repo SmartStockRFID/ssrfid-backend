@@ -1,8 +1,15 @@
 import datetime
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict
 
 from app.models.conferencia import Conferencia
+
+
+class ConferenciaStatus(Enum):
+    INICIADA = "iniciada"
+    FINALIZADA = "finalizada"
+    CANCELADA = "cancelada"
 
 
 class EventoBase(BaseModel):
@@ -43,7 +50,7 @@ class ConferenciaBase(BaseModel):
 
 class ConferenciaDetailsOut(ConferenciaBase):
     id: int
-    status: str
+    status: ConferenciaStatus
     leituras: list[LeituraOut]
     eventos: list[EventoOut]
 
@@ -80,7 +87,7 @@ class ConferenciaCreate(ConferenciaBase):
 
 class ConferenciaMinimalOut(ConferenciaBase):
     id: int
-    status: str
+    status: ConferenciaStatus
 
     @classmethod
     def from_conferencia_model(cls, nova_conferencia: Conferencia):
