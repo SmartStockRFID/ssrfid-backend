@@ -4,6 +4,7 @@ from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, Uniq
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
+from app.models.mixins import TimestampMixin
 from app.models.peca import Peca  # noqa
 from app.models.usuario import Usuario  # noqa
 
@@ -52,7 +53,7 @@ class Evento(Base):
     conferencia = relationship("Conferencia")
 
 
-class Conferencia(Base):
+class Conferencia(TimestampMixin, Base):
     __tablename__ = "conferencia"
     id = Column(Integer, primary_key=True, index=True)
     id_funcionario = Column(Integer, ForeignKey("usuarios.id"))

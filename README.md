@@ -9,7 +9,6 @@ Sistema de gerenciamento de estoque de peças Toyota, desenvolvido com FastAPI, 
 - **Busca por nome** e por RFID UID
 - **Autenticação JWT** (usuário e admin)
 - **Criação automática do usuário admin** ao rodar o seed
-- **CORS configurado** para frontend
 - **Interface Tkinter** para testes locais
 - **Scripts de migração** para atualização automática do banco sem perda de dados
 
