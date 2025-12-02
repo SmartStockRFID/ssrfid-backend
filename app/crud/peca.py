@@ -1,14 +1,14 @@
 from sqlalchemy.orm import Session
 
-
 from app.models.peca import Peca
+from app.models.usuario import Usuario
 from app.schemas.peca import PecaCreate, PecaFilter, PecaUpdate
 
 
-
 # CRUD Peça
-def create_peca(db: Session, peca: PecaCreate):
+def create_peca(db: Session, peca: PecaCreate, created_by: Usuario):
     db_peca = Peca(**peca.model_dump())
+    db_peca.created_by = created_by.id
     db.add(db_peca)
     db.commit()
     db.refresh(db_peca)
@@ -36,7 +36,6 @@ def update_peca(db: Session, peca_id: int, peca: PecaUpdate):
     return db_peca
 
 
-
 def listar_pecas_com_filtro(db: Session, filtros: PecaFilter) -> list[Peca]:
     query = db.query(Peca)
 
@@ -50,6 +49,7 @@ def listar_pecas_com_filtro(db: Session, filtros: PecaFilter) -> list[Peca]:
 
 
 # Delete
+
 
 def delete_peca(db: Session, peca_id: int):
     db_peca = db.query(Peca).filter(Peca.id == peca_id).first()

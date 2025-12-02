@@ -16,7 +16,8 @@ COPY . .
 
 EXPOSE ${PORT:-8000}
 
-COPY ./compose/fastapi/start /start.sh
+# Dependências de produção
+COPY ./compose/fastapi/start-prod /start.sh
 RUN chmod +x /start.sh
 
 ENTRYPOINT [ "/start.sh" ]

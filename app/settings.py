@@ -6,11 +6,16 @@ class AppSettings(BaseSettings):
     PROJECT_DESCRIPTION: str = "A API REST para acesso dos recursos do sistema SmartRFID"
     PROJECT_VERSION: str = "0.0.1"
 
+    ALLOWED_ORIGINS: list[str] = ["localhost:3000"]
+
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "2411"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "estoque"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_SECRET: str
+    JWT_ACCESS_EXIPIRE_MINUTES: int = 60  # Uma hora
 
     model_config: SettingsConfigDict = {
         "env_file": ".env",

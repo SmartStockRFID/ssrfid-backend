@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+set -o errexit
+set -o pipefail
+set -o nounset
+
+
+echo "⏳ Aguardando Postgres em $POSTGRES_HOST:$POSTGRES_PORT..."
+until pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER"; do
+  sleep 1
+done
+echo "✅ Postgres disponível!"
+
+# Rodar migrações se necessário
+if command -v alembic > /dev/null; then
+  echo "📦 Rodando migrações..."
+  alembic upgrade head
+fi
+
+echo "🚀 Iniciando FastAPI..."
+exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} 

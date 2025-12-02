@@ -174,7 +174,9 @@ class EstoqueApp:
 
     def peca_form(self, title, peca_id=None):
         import tkinter as tk
+
         import requests
+
         form = tk.Toplevel(self.root)
         form.title(title)
         campos = ["nome", "codigo_produto", "descricao", "localizacao"]

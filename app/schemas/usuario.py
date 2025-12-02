@@ -1,15 +1,22 @@
+from enum import StrEnum
+
 from pydantic import BaseModel
+
+
+class RoleEnum(StrEnum):
+    admin: str = "admin"
+    stockist: str = "stockist"
 
 
 class UsuarioBase(BaseModel):
     username: str
-    role: str
+    role: RoleEnum
 
 
 class UsuarioCreate(BaseModel):
     username: str
     password: str
-    role: str
+    role: RoleEnum
 
 
 class UsuarioOut(UsuarioBase):
