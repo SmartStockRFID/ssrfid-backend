@@ -52,6 +52,7 @@ class ConferenciaDetailsOut(ConferenciaBase):
     id: int
     status: ConferenciaStatus
     leituras: list[LeituraOut]
+    created_at: datetime.datetime
     eventos: list[EventoOut]
 
     @classmethod

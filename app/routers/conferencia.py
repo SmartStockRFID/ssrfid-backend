@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status, Response
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ConferenciaAlreadyClosed, ConferenciaNotFound, FuncionarioNotFound
+from app.core.exceptions import ConferenciaAlreadyClosed, ConferenciaNotFound, FuncionarioNotFound, ConferenciaAlreadyOpened
 from app.crud.conferencia import (
     criar_conferencia,
     existe_conferencia_ativa,
@@ -10,6 +10,7 @@ from app.crud.conferencia import (
     mudar_status_conferencia,
     registrar_eventos_em_conferencia,
     registrar_leituras_em_conferencia,
+    get_conferencia_ativa
 )
 from app.crud.usuario import get_usuario_by_username
 from app.database import get_db
@@ -31,7 +32,7 @@ def iniciar_conferencia(nova_conferencia: ConferenciaCreate, db: Session = Depen
     if not get_usuario_by_username(db, nova_conferencia.username_funcionario):
         raise FuncionarioNotFound()
     if existe_conferencia_ativa(db):
-        raise ConferenciaAlreadyClosed()
+        raise ConferenciaAlreadyOpened()
     conferencia_criada = criar_conferencia(db, nova_conferencia)
     return ConferenciaMinimalOut.from_conferencia_model(conferencia_criada)
 
@@ -102,3 +103,12 @@ def detalhes_conferencia(id_conferencia: int, db: Session = Depends(get_db)):
     if not conferencia_found:
         raise ConferenciaNotFound()
     return ConferenciaDetailsOut.from_conferencia_model(conferencia_found)
+
+
+@router.get("-ativa",  response_model=ConferenciaDetailsOut)
+def pegar_conferencia_ativa(db: Session = Depends(get_db)):
+    """Retorna a conferência ativa atualmente"""
+    conferencia = get_conferencia_ativa(db)
+    if not conferencia:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return ConferenciaDetailsOut.from_conferencia_model(conferencia)
