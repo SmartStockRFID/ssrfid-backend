@@ -96,6 +96,10 @@ def existe_conferencia_ativa(session: Session) -> bool:
     return session.query(Conferencia).filter(Conferencia.status == StatusConferencia.INICIADA).count() > 0
 
 
+def get_conferencia_ativa(session: Session) -> Conferencia | None:
+    return session.query(Conferencia).filter(Conferencia.status == StatusConferencia.INICIADA).first()
+
+
 def get_conferencia_by_id(session: Session, conferencia_id: int) -> Conferencia:
     return (
         session.query(Conferencia)

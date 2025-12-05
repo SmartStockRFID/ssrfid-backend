@@ -43,6 +43,15 @@ class ConferenciaAlreadyClosed(AppException):
         )
 
 
+class ConferenciaAlreadyOpened(AppException):
+    def __init__(self):
+        super().__init__(
+            detail="Existe uma conferência em aberto",
+            code=status.HTTP_409_CONFLICT,
+        )
+
+
+
 class FuncionarioNotFound(AppException):
     def __init__(self):
         super().__init__(
