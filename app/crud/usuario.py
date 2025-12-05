@@ -31,3 +31,20 @@ def create_usuario(db: Session, usuario: UsuarioCreate):
     db.commit()
     db.refresh(db_usuario)
     return db_usuario
+
+
+def get_usuarios(db: Session) -> list[Usuario]:
+    return db.query(Usuario).all()
+
+
+def inativar_usuario(db: Session, usuario_id: int) -> Usuario | None:
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if not usuario:
+        return None
+    if not usuario.is_active:
+        return usuario
+    usuario.is_active = False
+    db.add(usuario)
+    db.commit()
+    db.refresh(usuario)
+    return usuario

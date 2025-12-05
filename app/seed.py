@@ -1,8 +1,9 @@
 import random
+
 from sqlalchemy.orm import Session
+
 from app.database import SessionLocal
 from app.models.peca import Peca
-
 
 pecas_modelos = [
     ("Filtro de Óleo", "Corolla"),
@@ -46,12 +47,12 @@ def gerar_dados(qtd):
             continue
         usados.add(codigo_produto)
         descricao = f"Peça genuína Toyota {nome}, compatível com {modelo} ({ano})."
-        localizacao = f"A{random.randint(1,5)}-{random.randint(1,10):02d}"
+        localizacao = f"A{random.randint(1, 5)}-{random.randint(1, 10):02d}"
         peca = Peca(
             nome=f"{nome} - {modelo}",
             codigo_produto=codigo_produto,
             descricao=descricao,
-            localizacao=localizacao
+            localizacao=localizacao,
         )
         db.add(peca)
         pecas_criadas += 1

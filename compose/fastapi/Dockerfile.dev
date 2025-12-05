@@ -1,0 +1,25 @@
+# Imagem base com Python
+FROM python:3.13-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential \
+  postgresql-client \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+COPY . .
+
+RUN uv export --format requirements-txt > requirements.txt
+RUN uv pip install -r requirements.txt --system 
+
+EXPOSE ${PORT:-8000}
+
+# Dependências de desenvolvimento
+COPY ./compose/fastapi/start-dev /start
+RUN sed -i 's/\r$//g' /start
+RUN chmod +x /start

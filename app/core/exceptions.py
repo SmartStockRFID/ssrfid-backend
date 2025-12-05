@@ -1,11 +1,20 @@
+from typing import Any, Dict
+
 from fastapi import status
 
 
 class AppException(Exception):
-    def __init__(self, detail: str, code: int, log_msg: str | None = None):
+    def __init__(
+        self,
+        detail: str,
+        code: int,
+        log_msg: str | None = None,
+        headers: Dict[str, Any] | None = None,
+    ):
         self.detail = detail
         self.code = code
         self.log_msg = log_msg or detail
+        self.headers = headers
         super().__init__(self.detail)
 
 
@@ -42,7 +51,6 @@ class ConferenciaAlreadyOpened(AppException):
         )
 
 
-
 class FuncionarioNotFound(AppException):
     def __init__(self):
         super().__init__(
@@ -56,4 +64,37 @@ class PecaNotFound(AppException):
         super().__init__(
             detail=detail if detail else "Produto não encontrada",
             code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class UserNotFound(AppException):
+    def __init__(self, detail: str | None = None):
+        super().__init__(
+            detail=detail if detail else "Usuário não encontrado",
+            code=status.HTTP_403_FORBIDDEN,
+        )
+
+
+class UserAlreadyRegistered(AppException):
+    def __init__(self, detail: str | None = None):
+        super().__init__(
+            detail=detail if detail else "Usuário já registrado",
+            code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class UnauthorizedUser(AppException):
+    def __init__(self, detail: str | None = None):
+        super().__init__(
+            detail=detail if detail else "Usuário não tem permissão para acessar este recurso",
+            code=status.HTTP_403_FORBIDDEN,
+        )
+
+
+class CredentialsException(AppException):
+    def __init__(self):
+        super().__init__(
+            detail="Usuário com credenciais inválidas",
+            code=status.HTTP_401_UNAUTHORIZED,
+            headers={"WWW-Authenticate": "Bearer"},
         )

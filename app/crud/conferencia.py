@@ -1,6 +1,8 @@
 from typing import Tuple
 
-from sqlalchemy import delete
+from fastapi_filters import FilterValues
+from fastapi_filters.ext.sqlalchemy import apply_filters
+from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, joinedload
 
@@ -105,6 +107,38 @@ def get_conferencia_by_id(session: Session, conferencia_id: int) -> Conferencia:
         .filter(Conferencia.id == conferencia_id)
         .first()
     )
+
+
+def get_readings_from_conference(
+    session: Session,
+    *,
+    filters: FilterValues,
+    limit: int,
+    offset: int,
+    id_conference: int,
+) -> list[Leitura]:
+    if not session.query(Conferencia).filter(Conferencia.id == id_conference):
+        return None
+    stmt = select(Leitura).filter(Leitura.conferencia_id == id_conference).limit(limit).offset(offset)
+    stmt_filtered = apply_filters(stmt, filters)
+    result = session.execute(stmt_filtered)
+    return result.scalars().all()
+
+
+def get_events_from_conference(
+    session: Session,
+    *,
+    filters: FilterValues,
+    limit: int,
+    offset: int,
+    id_conference: int,
+) -> list[Leitura]:
+    if not session.query().filter(Conferencia.id == id_conference):
+        return None
+    stmt = select(Leitura).filter(Evento.conferencia_id == id_conference).limit(limit).offset(offset)
+    stmt_filtered = apply_filters(stmt, filters)
+    result = session.execute(stmt_filtered)
+    return result.scalars().all()
 
 
 def get_conferencias(session: Session) -> list[Conferencia]:

@@ -1,15 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
-from app.crud.peca import (
-    get_pecas, get_peca, create_peca, update_peca, delete_peca, listar_pecas_com_filtro
-)
+from app.auth import get_admin_user
+from app.crud.peca import create_peca, delete_peca, get_peca, listar_pecas_com_filtro, update_peca
 from app.database import get_db
-from app.schemas.peca import PecaOut, PecaCreate, PecaUpdate, PecaFilter
-from app.models.peca import Peca
+from app.schemas.peca import PecaCreate, PecaFilter, PecaOut, PecaUpdate
 
-router = APIRouter(prefix="/pecas", tags=["pecas"])
+router = APIRouter(
+    prefix="/pecas",
+    tags=["pecas"],
+    dependencies=[
+        Depends(get_admin_user),
+    ],
+)
 
 
 @router.get("/", response_model=list[PecaOut])
