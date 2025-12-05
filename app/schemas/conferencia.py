@@ -3,7 +3,7 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict
 
-from app.models.conferencia import Conferencia
+from app.models.conferencia import Conferencia, Conferencisa
 
 
 class PecaBase(BaseModel):
@@ -64,12 +64,14 @@ class ConferenciaCreate(ConferenciaBase):
 
 class ConferenciaMinimalOut(ConferenciaBase):
     id: int
+    created_at: datetime.datetime
     status: ConferenciaStatus
 
     @classmethod
     def from_conferencia_model(cls, nova_conferencia: Conferencia):
         return cls(
             id=nova_conferencia.id,
+            created_at=nova_conferencia.created_at,
             status=nova_conferencia.status,
             username_funcionario=nova_conferencia.funcionario.username,
         )
