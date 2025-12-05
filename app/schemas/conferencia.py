@@ -3,7 +3,7 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict
 
-from app.models.conferencia import Conferencia, Conferencisa
+from app.models.conferencia import Conferencia
 
 
 class PecaBase(BaseModel):
@@ -41,9 +41,16 @@ class LeituraBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class LeituraOut(LeituraBase):
+class LeituraDetailsOut(LeituraBase):
     id: int
     produto: PecaBase
+    ultima_leitura: datetime.datetime
+    quantidade: int
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LeituraMinimalOut(LeituraBase):
+    id: int
     ultima_leitura: datetime.datetime
     quantidade: int
     model_config = ConfigDict(from_attributes=True)
@@ -61,7 +68,7 @@ class ConferenciaBase(BaseModel):
 class ConferenciaDetailsOut(ConferenciaBase):
     id: int
     status: ConferenciaStatus
-    leituras: list[LeituraOut]
+    leituras: list[LeituraMinimalOut]
     created_at: datetime.datetime
     eventos: list[EventoOut]
 
@@ -73,7 +80,7 @@ class ConferenciaDetailsOut(ConferenciaBase):
             created_at=nova_conferencia.created_at,
             username_funcionario=nova_conferencia.funcionario.username,
             leituras=[
-                LeituraOut(
+                LeituraMinimalOut(
                     id=leitura.id,
                     codigo_produto=leitura.codigo_categoria,
                     ultima_leitura=leitura.ultima_leitura_em,

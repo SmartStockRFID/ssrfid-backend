@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -31,18 +32,39 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
             minutes=app_settings.JWT_ACCESS_EXIPIRE_MINUTES,
         )
     )
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, app_settings.JWT_SECRET, algorithm=app_settings.JWT_ALGORITHM)
+    to_encode.update({"exp": expire, "type": "access"})
+    return jwt.encode(to_encode, app_settings.JWT_SECRET, algorithm=app_settings.JWT_ALGORITHM), expire
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def create_refresh_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(days=app_settings.JWT_REFRESH_EXPIRE_DAYS)
+    )
+    to_encode.update({"exp": expire, "type": "refresh"})
+    return jwt.encode(to_encode, app_settings.JWT_SECRET, algorithm=app_settings.JWT_ALGORITHM), expire
+
+
+def verify_token(token: str, token_type: str = "access") -> dict | None:
+    """Verifica e decodifica um token JWT. Retorna o payload se válido, None caso contrário."""
     try:
         payload = jwt.decode(token, app_settings.JWT_SECRET, algorithms=[app_settings.JWT_ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise CredentialsException()
+        if payload.get("type") != token_type:
+            return None
+        return payload
     except JWTError:
+        return None
+
+
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
+    payload = verify_token(token, token_type="access")
+    if not payload:
         raise CredentialsException()
+
+    username: str = payload.get("sub")
+    if username is None:
+        raise CredentialsException()
+
     user = get_usuario_by_username(db, username)
     if user is None:
         raise CredentialsException()

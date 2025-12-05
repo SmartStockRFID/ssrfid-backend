@@ -51,7 +51,6 @@ class ConferenciaAlreadyOpened(AppException):
         )
 
 
-
 class FuncionarioNotFound(AppException):
     def __init__(self):
         super().__init__(
@@ -79,8 +78,8 @@ class UserNotFound(AppException):
 class UserAlreadyRegistered(AppException):
     def __init__(self, detail: str | None = None):
         super().__init__(
-            detail=detail if detail else "Usuário inválido",
-            code=status.HTTP_,
+            detail=detail if detail else "Usuário já registrado",
+            code=status.HTTP_400_BAD_REQUEST,
         )
 
 

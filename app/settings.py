@@ -16,6 +16,7 @@ class AppSettings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_SECRET: str
     JWT_ACCESS_EXIPIRE_MINUTES: int = 60  # Uma hora
+    JWT_REFRESH_EXPIRE_DAYS: int = 7  # Uma semana
 
     model_config: SettingsConfigDict = {
         "env_file": ".env",

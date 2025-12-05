@@ -61,6 +61,8 @@ dependencies = [
     "uvloop==0.21.0",
     "watchfiles==1.1.0",
     "websockets==15.0.1",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
 ]
 
 
@@ -145,3 +147,13 @@ migrate = "alembic upgrade head"
 createsuperuser = "python -m app.cli.cli createsuperuser"
 requirements = "uv export --no-hashes --output-file requirements.txt"
 cli = "python -m app.cli.cli"
+test = "pytest -v"
+test-cov = "pytest -v --cov=app --cov-report=html"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = "-v --strict-markers"
