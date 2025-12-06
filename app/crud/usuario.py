@@ -37,6 +37,10 @@ def get_usuarios(db: Session) -> list[Usuario]:
     return db.query(Usuario).all()
 
 
+def get_stockists(db: Session) -> list[Usuario]:
+    return db.query(Usuario).filter(Usuario.role == "stockist").all()
+
+
 def inativar_usuario(db: Session, usuario_id: int) -> Usuario | None:
     usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not usuario:

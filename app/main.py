@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.core.exception_handler import ExceptionHandler
-from app.routers import auth, conferencia, peca, usuario
+from app.routers import auth, conferencia, peca, relatorio, usuario
 from app.settings import app_settings
 
 app = FastAPI(
@@ -33,5 +33,6 @@ app.include_router(auth.router)
 app.include_router(peca.router)
 app.include_router(usuario.router)
 app.include_router(conferencia.router)
+app.include_router(relatorio.router)
 
 ExceptionHandler.handle(app)
