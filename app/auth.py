@@ -29,7 +29,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     expire = datetime.now(timezone.utc) + (
         expires_delta
         or timedelta(
-            minutes=app_settings.JWT_ACCESS_EXIPIRE_MINUTES,
+            minutes=app_settings.JWT_ACCESS_EXPIRE_MINUTES,
         )
     )
     to_encode.update({"exp": expire, "type": "access"})

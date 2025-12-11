@@ -38,7 +38,7 @@ from app.schemas.shared import PaginatedResponse
 router = APIRouter(prefix="/conferencia", tags=["conferencia"])
 
 
-@router.post("/", response_model=ConferenciaMinimalOut)
+@router.post("", response_model=ConferenciaMinimalOut)
 def iniciar_conferencia(nova_conferencia: ConferenciaCreate, user: CurrentUser, db: Session = Depends(get_db)):
     """Inicia uma nova sessão de conferência de estoque."""
     if not get_usuario_by_username(db, nova_conferencia.username_funcionario):
@@ -49,7 +49,7 @@ def iniciar_conferencia(nova_conferencia: ConferenciaCreate, user: CurrentUser, 
     return ConferenciaMinimalOut.from_conferencia_model(conferencia_criada)
 
 
-@router.post("/{conferencia_id}/leitura/", response_model=ConferenciaMinimalOut)
+@router.post("/{conferencia_id}/leitura", response_model=ConferenciaMinimalOut)
 def registrar_leitura_na_conferencia(
     conferencia_id: int, leituras: list[LeituraCreate], user: CurrentUser, db: Session = Depends(get_db)
 ):
@@ -63,7 +63,7 @@ def registrar_leitura_na_conferencia(
     return ConferenciaMinimalOut.from_conferencia_model(conferencia_atualizada)
 
 
-@router.post("/{conferencia_id}/evento/", response_model=ConferenciaMinimalOut)
+@router.post("/{conferencia_id}/evento", response_model=ConferenciaMinimalOut)
 def registrar_eventos_na_conferencia(
     conferencia_id: int, eventos: list[EventoCreate], user: CurrentUser, db: Session = Depends(get_db)
 ):
@@ -77,7 +77,7 @@ def registrar_eventos_na_conferencia(
     return ConferenciaMinimalOut.from_conferencia_model(conferencia_atualizada)
 
 
-@router.put("/{conferencia_id}/encerrar/", response_model=ConferenciaMinimalOut)
+@router.put("/{conferencia_id}/encerrar", response_model=ConferenciaMinimalOut)
 def encerrar_conferencia(conferencia_id: int, user: CurrentUser, db: Session = Depends(get_db)):
     """Encerra uma conferência ativa, mudando seu status para 'FINALIZADA'."""
     conferencia_found = get_conferencia_by_id(db, conferencia_id)
@@ -89,7 +89,7 @@ def encerrar_conferencia(conferencia_id: int, user: CurrentUser, db: Session = D
     return ConferenciaMinimalOut.from_conferencia_model(conferencia_found)
 
 
-@router.put("/{conferencia_id}/cancelar/", response_model=ConferenciaMinimalOut)
+@router.put("/{conferencia_id}/cancelar", response_model=ConferenciaMinimalOut)
 def cancelar_conferencia(conferencia_id: int, user: CurrentUser, db: Session = Depends(get_db)):
     """Cancela uma conferência ativa, mudando seu status para 'CANCELADA'."""
     conferencia_found = get_conferencia_by_id(db, conferencia_id)
@@ -101,14 +101,14 @@ def cancelar_conferencia(conferencia_id: int, user: CurrentUser, db: Session = D
     return ConferenciaMinimalOut.from_conferencia_model(conferencia_found)
 
 
-@router.get("/", response_model=list[ConferenciaMinimalOut])
+@router.get("", response_model=list[ConferenciaMinimalOut])
 def listar_conferencia(user: CurrentUser, db: Session = Depends(get_db)):
     """Lista todas as conferências."""
     conferencias = get_conferencias(db)
     return [ConferenciaMinimalOut.from_conferencia_model(conferencia) for conferencia in conferencias]
 
 
-@router.get("/{id_conferencia}/leituras/", response_model=PaginatedResponse[LeituraDetailsOut])
+@router.get("/{id_conferencia}/leituras", response_model=PaginatedResponse[LeituraDetailsOut])
 def readings_from_conference(
     id_conferencia: int,
     user: CurrentUser,
@@ -144,7 +144,7 @@ def readings_from_conference(
     )
 
 
-@router.get("/{id_conferencia}/eventos/", response_model=PaginatedResponse[EventoOut])
+@router.get("/{id_conferencia}/eventos", response_model=PaginatedResponse[EventoOut])
 def events_from_conference(
     id_conferencia: int,
     user: CurrentUser,
@@ -171,8 +171,8 @@ def events_from_conference(
     )
 
 
-@router.get("-ativa/", response_model=ConferenciaDetailsOut)
-def pegar_conferencia_ativa(db: Session = Depends(get_db)):
+@router.get("-ativa", response_model=ConferenciaDetailsOut)
+def pegar_conferencia_ativa(user: CurrentUser, db: Session = Depends(get_db)):
     """Retorna a conferência ativa atualmente"""
     conferencia = get_conferencia_ativa(db)
     if not conferencia:

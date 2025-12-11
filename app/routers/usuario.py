@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=UsuarioOut, status_code=201)
+@router.post("", response_model=UsuarioOut, status_code=201)
 def criar_usuario(
     usuario: UsuarioCreate,
     user: AdminUser,
@@ -29,7 +29,7 @@ def criar_usuario(
     return create_usuario(db, usuario)
 
 
-@router.get("/", response_model=list[UsuarioOut])
+@router.get("", response_model=list[UsuarioOut])
 def listar_usuarios(
     user: AdminUser,
     db: Session = Depends(get_db),
